@@ -1,7 +1,7 @@
 // src/components/VocabStudio.tsx
 "use client";
 import { useState, useMemo } from "react";
-import { VOCAB } from "@/data/vocab";
+import { VOCAB, VOCAB_SOURCES } from "@/data/vocab";
 import { VocabCard, VocabTopic } from "@/data/types";
 import { useContent } from "@/lib/content";
 import Quiz from "./Quiz";
@@ -109,6 +109,16 @@ export default function VocabStudio() {
       <div className="card" style={{ marginTop: 18 }}>
         <h3>Quiz nhanh — {topic.name}</h3>
         <Quiz key={topic.id} items={topic.quiz} ns={`vocab:${topic.id}`} />
+      </div>
+
+      <div className="card" style={{ marginTop: 18 }}>
+        <h3 style={{ fontSize: 17 }}>Nguồn từ vựng để học sâu thêm</h3>
+        {VOCAB_SOURCES.map((s) => (
+          <div key={s.url} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px dashed var(--line)" }}>
+            <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, fontSize: 14 }}>{s.name} ↗</a>
+            <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>{s.note}</div>
+          </div>
+        ))}
       </div>
     </div>
   );

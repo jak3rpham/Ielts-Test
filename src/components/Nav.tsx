@@ -9,12 +9,12 @@ const TABS = [
   { href: "/", num: "00", label: "Tổng quan" },
   { href: "/grammar", num: "01", label: "Ngữ pháp" },
   { href: "/vocab", num: "02", label: "Từ vựng" },
-  { href: "/listening", num: "03", label: "Listening" },
-  { href: "/reading", num: "04", label: "Reading" },
-  { href: "/writing", num: "05", label: "Writing T2" },
-  { href: "/speaking", num: "06", label: "Speaking" },
-  { href: "/tips", num: "07", label: "Mẹo" },
-  { href: "/frameworks", num: "08", label: "Cấu trúc" },
+  { href: "/frameworks", num: "03", label: "Cấu trúc" },
+  { href: "/tips", num: "04", label: "Mẹo" },
+  { href: "/listening", num: "05", label: "Listening" },
+  { href: "/reading", num: "06", label: "Reading" },
+  { href: "/writing", num: "07", label: "Writing" },
+  { href: "/speaking", num: "08", label: "Speaking" },
 ];
 
 export default function Nav() {
@@ -67,6 +67,12 @@ export default function Nav() {
           })}
         </div>
       </nav>
+      {supabaseEnabled && !email && path !== "/login" && (
+        <div style={{ background: "var(--amber-soft)", borderBottom: "1.5px solid var(--line)", padding: "9px 24px", fontSize: 13, color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+          <span>💡 Đăng nhập để lưu tiến độ và đồng bộ trên mọi thiết bị (không bắt buộc).</span>
+          <Link href="/login" className="btn sm">Đăng nhập</Link>
+        </div>
+      )}
     </>
   );
 }

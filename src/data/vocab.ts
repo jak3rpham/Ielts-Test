@@ -133,4 +133,114 @@ export const VOCAB: VocabTopic[] = [
       { q: "Trái nghĩa của 'interconnected':", options: ["interdependent", "linked", "isolated"], answer: 2, explain: "isolated = tách biệt; hai cái kia đồng nghĩa." },
     ],
   },
+  {
+    id: "crime-law",
+    name: "Tội phạm & Pháp luật",
+    cards: [
+      { id: "deterrent", word: "deterrent", pos: "noun", level: "C1", register: "formal", skills: ["W", "S"], def: "yếu tố răn đe", example: "Harsh sentences may act as a <span class='hi'>deterrent</span> to crime.", synonyms: ["disincentive", "discouragement"], antonyms: ["incentive"], phrases: ["act as a deterrent", "an effective deterrent"], useCase: "Tranh luận về hình phạt và phòng ngừa tội phạm." },
+      { id: "rehabilitation", word: "rehabilitation", pos: "noun", level: "C1", register: "formal", skills: ["W"], def: "sự cải tạo, phục hồi (phạm nhân)", example: "Prisons should focus on <span class='hi'>rehabilitation</span>, not just punishment.", synonyms: ["reform", "reintegration"], antonyms: ["punishment"], phrases: ["offender rehabilitation", "focus on rehabilitation"], useCase: "Lập luận nhà tù nên cải tạo thay vì chỉ trừng phạt." },
+      { id: "lenient", word: "lenient", pos: "adj", level: "C1", register: "neutral", skills: ["W", "S"], def: "khoan dung, nhẹ tay", example: "Critics say the sentence was too <span class='hi'>lenient</span>.", synonyms: ["soft", "mild"], antonyms: ["harsh", "strict", "severe"], phrases: ["a lenient sentence", "too lenient"], useCase: "Bình luận mức án nặng/nhẹ." },
+      { id: "offence", word: "offence", pos: "noun", level: "B2", register: "neutral", skills: ["W", "S", "R"], def: "hành vi phạm tội/vi phạm", example: "Minor <span class='hi'>offences</span> should not lead to imprisonment.", synonyms: ["crime", "violation"], antonyms: [], phrases: ["commit an offence", "a minor/serious offence"], useCase: "Phân loại mức độ vi phạm." },
+      { id: "law-abiding", word: "law-abiding", pos: "adj", level: "C1", register: "neutral", skills: ["W", "S"], def: "tuân thủ pháp luật", example: "Most citizens are <span class='hi'>law-abiding</span>.", synonyms: ["compliant"], antonyms: ["criminal", "lawless"], phrases: ["law-abiding citizen"], useCase: "Phân biệt công dân tốt với tội phạm." },
+      { id: "surveillance-l", word: "surveillance", pos: "noun", level: "C1", register: "formal", skills: ["W", "R"], def: "sự giám sát", example: "CCTV <span class='hi'>surveillance</span> can deter crime but raises privacy concerns.", synonyms: ["monitoring"], antonyms: ["privacy"], phrases: ["under surveillance", "CCTV surveillance"], useCase: "Bàn camera an ninh vs quyền riêng tư." },
+    ],
+    quiz: [
+      { q: "'a deterrent' là:", options: ["thứ khuyến khích", "yếu tố răn đe", "hình phạt nhẹ"], answer: 1, explain: "deterrent = thứ ngăn cản/răn đe; trái nghĩa incentive." },
+      { q: "Trái nghĩa của 'lenient':", options: ["soft", "mild", "harsh"], answer: 2, explain: "harsh/strict = nghiêm khắc; soft & mild đồng nghĩa lenient." },
+      { q: "'rehabilitation' nhấn vào việc:", options: ["trừng phạt", "cải tạo & tái hòa nhập", "giám sát"], answer: 1, explain: "rehabilitation = cải tạo phạm nhân để tái hòa nhập, đối lập với punishment." },
+    ],
+  },
+  {
+    id: "academic-verbs",
+    name: "Động từ học thuật (AWL)",
+    cards: [
+      { id: "analyse", word: "analyse", pos: "verb", level: "B2", register: "formal", skills: ["W", "S", "R"], def: "phân tích", example: "Researchers <span class='hi'>analysed</span> the data over a decade.", synonyms: ["examine", "evaluate", "scrutinise"], antonyms: [], phrases: ["analyse data", "analyse trends", "carefully analyse"], useCase: "Dùng cho mọi đề; thay cho 'look at' nghe học thuật hơn." },
+      { id: "demonstrate", word: "demonstrate", pos: "verb", level: "B2", register: "formal", skills: ["W", "S"], def: "chứng minh, thể hiện rõ", example: "The results <span class='hi'>demonstrate</span> a clear link.", synonyms: ["show", "prove", "illustrate"], antonyms: ["disprove"], phrases: ["demonstrate that", "clearly demonstrate"], useCase: "Thay 'show' để dẫn dắt bằng chứng." },
+      { id: "facilitate", word: "facilitate", pos: "verb", level: "C1", register: "formal", skills: ["W"], def: "tạo điều kiện, làm cho dễ dàng", example: "Technology can <span class='hi'>facilitate</span> remote learning.", synonyms: ["enable", "ease", "assist"], antonyms: ["hinder", "impede"], phrases: ["facilitate access", "facilitate communication"], useCase: "Nói công cụ/chính sách giúp việc gì dễ hơn." },
+      { id: "implement", word: "implement", pos: "verb", level: "B2", register: "formal", skills: ["W", "S"], def: "triển khai, thực thi (chính sách)", example: "The government <span class='hi'>implemented</span> strict regulations.", synonyms: ["enact", "carry out", "introduce"], antonyms: ["abolish"], phrases: ["implement a policy", "implement measures"], useCase: "Phần giải pháp: nói về thực thi chính sách." },
+      { id: "indicate", word: "indicate", pos: "verb", level: "B2", register: "formal", skills: ["W", "R"], def: "cho thấy, chỉ ra", example: "The survey <span class='hi'>indicates</span> a shift in attitudes.", synonyms: ["suggest", "show", "signal"], antonyms: [], phrases: ["indicate that", "studies indicate"], useCase: "Dẫn dắt số liệu/khảo sát một cách thận trọng." },
+      { id: "evaluate", word: "evaluate", pos: "verb", level: "B2", register: "formal", skills: ["W", "S"], def: "đánh giá", example: "We must <span class='hi'>evaluate</span> the long-term effects.", synonyms: ["assess", "appraise", "weigh up"], antonyms: [], phrases: ["evaluate the impact", "critically evaluate"], useCase: "Đề yêu cầu cân nhắc/đánh giá lợi hại." },
+    ],
+    quiz: [
+      { q: "'demonstrate' đồng nghĩa gần nhất:", options: ["disprove", "show/prove", "ignore"], answer: 1, explain: "demonstrate = chứng minh/thể hiện rõ." },
+      { q: "Trái nghĩa của 'facilitate':", options: ["enable", "ease", "hinder"], answer: 2, explain: "hinder/impede = cản trở; hai cái kia đồng nghĩa facilitate." },
+      { q: "'implement a policy' nghĩa là:", options: ["bãi bỏ chính sách", "triển khai chính sách", "phản đối chính sách"], answer: 1, explain: "implement = thực thi; trái nghĩa abolish." },
+    ],
+  },
+  {
+    id: "trends-data",
+    name: "Mô tả xu hướng & số liệu",
+    cards: [
+      { id: "surge", word: "surge", pos: "verb/noun", level: "C1", register: "neutral", skills: ["W", "S"], def: "tăng vọt", example: "Online sales <span class='hi'>surged</span> during the pandemic.", synonyms: ["soar", "rocket", "climb sharply"], antonyms: ["plummet", "plunge"], phrases: ["a surge in demand", "surge dramatically"], useCase: "Mô tả tăng mạnh (Task 1, hoặc nói xu hướng)." },
+      { id: "plummet", word: "plummet", pos: "verb", level: "C1", register: "neutral", skills: ["W"], def: "giảm mạnh, lao dốc", example: "House prices <span class='hi'>plummeted</span> after the crash.", synonyms: ["plunge", "tumble", "nosedive"], antonyms: ["soar", "surge"], phrases: ["plummet sharply", "plummet to a record low"], useCase: "Mô tả sụt giảm đột ngột." },
+      { id: "fluctuate", word: "fluctuate", pos: "verb", level: "C1", register: "neutral", skills: ["W"], def: "dao động lên xuống", example: "Temperatures <span class='hi'>fluctuated</span> throughout the year.", synonyms: ["vary", "oscillate"], antonyms: ["stabilise"], phrases: ["fluctuate wildly", "prices fluctuate"], useCase: "Số liệu lên xuống thất thường (Task 1)." },
+      { id: "plateau", word: "plateau", pos: "verb/noun", level: "C2", register: "neutral", skills: ["W"], def: "chững lại, đi ngang", example: "Growth <span class='hi'>plateaued</span> in the final quarter.", synonyms: ["level off", "stabilise"], antonyms: ["surge"], phrases: ["reach a plateau", "plateau before falling"], useCase: "Số liệu tăng rồi ngừng, đi ngang." },
+      { id: "steadily", word: "steadily", pos: "adv", level: "B2", register: "neutral", skills: ["W", "S"], def: "một cách đều đặn, ổn định", example: "Enrolment rose <span class='hi'>steadily</span> over the period.", synonyms: ["gradually", "consistently"], antonyms: ["sharply", "abruptly"], phrases: ["rise steadily", "steadily increase"], useCase: "Mô tả thay đổi từ từ, đều." },
+      { id: "negligible", word: "negligible", pos: "adj", level: "C1", register: "formal", skills: ["W"], def: "không đáng kể", example: "The difference was <span class='hi'>negligible</span>.", synonyms: ["insignificant", "minimal"], antonyms: ["significant", "substantial"], phrases: ["a negligible amount", "negligible impact"], useCase: "Nói mức thay đổi/khác biệt rất nhỏ." },
+    ],
+    quiz: [
+      { q: "Trái nghĩa của 'surge':", options: ["soar", "plummet", "climb"], answer: 1, explain: "plummet/plunge = lao dốc; surge/soar/climb đều là tăng." },
+      { q: "'plateau' (số liệu) nghĩa là:", options: ["tăng vọt", "chững lại đi ngang", "giảm sâu"], answer: 1, explain: "plateau = level off, đi ngang." },
+      { q: "'negligible' nghĩa là:", options: ["rất lớn", "không đáng kể", "tăng nhanh"], answer: 1, explain: "negligible = nhỏ đến mức bỏ qua được; trái nghĩa significant." },
+    ],
+  },
+  {
+    id: "travel-culture",
+    name: "Du lịch & Văn hóa",
+    cards: [
+      { id: "heritage", word: "heritage", pos: "noun", level: "B2", register: "neutral", skills: ["W", "S"], def: "di sản (văn hóa, lịch sử)", example: "The city is famous for its cultural <span class='hi'>heritage</span>.", synonyms: ["legacy", "tradition"], antonyms: [], phrases: ["cultural heritage", "heritage site", "preserve heritage"], useCase: "Bàn bảo tồn văn hóa, du lịch di sản." },
+      { id: "immerse", word: "immerse", pos: "verb", level: "C1", register: "neutral", skills: ["W", "S"], def: "đắm mình, hòa mình vào", example: "Travel lets you <span class='hi'>immerse</span> yourself in a new culture.", synonyms: ["absorb", "engross"], antonyms: [], phrases: ["immerse yourself in", "fully immersed"], useCase: "Speaking: nói trải nghiệm văn hóa sâu sắc." },
+      { id: "authentic", word: "authentic", pos: "adj", level: "B2", register: "neutral", skills: ["W", "S"], def: "đích thực, nguyên bản", example: "Tourists seek <span class='hi'>authentic</span> local experiences.", synonyms: ["genuine", "real"], antonyms: ["fake", "artificial"], phrases: ["authentic cuisine", "an authentic experience"], useCase: "Mô tả trải nghiệm/ẩm thực thật, không dàn dựng." },
+      { id: "landmark", word: "landmark", pos: "noun", level: "B2", register: "neutral", skills: ["S", "R"], def: "địa danh/công trình nổi bật", example: "The bridge is a famous <span class='hi'>landmark</span>.", synonyms: ["monument", "attraction"], antonyms: [], phrases: ["historic landmark", "iconic landmark"], useCase: "Speaking Part 2 mô tả địa điểm." },
+      { id: "commercialised", word: "commercialised", pos: "adj", level: "C1", register: "neutral", skills: ["W", "S"], def: "bị thương mại hóa (mất bản sắc)", example: "Many destinations have become overly <span class='hi'>commercialised</span>.", synonyms: ["commoditised"], antonyms: ["unspoilt"], phrases: ["heavily commercialised"], useCase: "Phê phán mặt trái của du lịch đại trà." },
+      { id: "ubiquitous", word: "ubiquitous", pos: "adj", level: "C2", register: "formal", skills: ["W"], def: "có mặt khắp nơi", example: "Fast food has become <span class='hi'>ubiquitous</span> in big cities.", synonyms: ["omnipresent", "widespread"], antonyms: ["rare", "scarce"], phrases: ["ubiquitous presence"], useCase: "Nói thứ gì đó hiện diện khắp nơi (văn hóa toàn cầu)." },
+    ],
+    quiz: [
+      { q: "'authentic' trái nghĩa với:", options: ["genuine", "real", "fake"], answer: 2, explain: "authentic = đích thực; trái nghĩa fake/artificial." },
+      { q: "'immerse yourself in a culture' nghĩa là:", options: ["tránh né văn hóa đó", "hòa mình vào văn hóa đó", "ghi chép về văn hóa đó"], answer: 1, explain: "immerse = đắm mình/hòa mình vào." },
+      { q: "'ubiquitous' nghĩa là:", options: ["hiếm có", "có mặt khắp nơi", "đắt đỏ"], answer: 1, explain: "ubiquitous = omnipresent; trái nghĩa rare." },
+    ],
+  },
+  {
+    id: "money-finance",
+    name: "Tiền & Tài chính",
+    cards: [
+      { id: "expenditure", word: "expenditure", pos: "noun", level: "C1", register: "formal", skills: ["W", "R"], def: "chi tiêu, khoản chi", example: "Public <span class='hi'>expenditure</span> on health has risen.", synonyms: ["spending", "outlay"], antonyms: ["income", "revenue"], phrases: ["public expenditure", "household expenditure"], useCase: "Bàn ngân sách, chi tiêu chính phủ/hộ gia đình." },
+      { id: "frugal", word: "frugal", pos: "adj", level: "C1", register: "neutral", skills: ["W", "S"], def: "tằn tiện, tiết kiệm", example: "A <span class='hi'>frugal</span> lifestyle helps people save.", synonyms: ["thrifty", "economical"], antonyms: ["extravagant", "wasteful"], phrases: ["frugal lifestyle", "frugal with money"], useCase: "Nói về thói quen chi tiêu." },
+      { id: "subsidy", word: "subsidy", pos: "noun", level: "C1", register: "formal", skills: ["W", "R"], def: "khoản trợ cấp (của nhà nước)", example: "Government <span class='hi'>subsidies</span> keep transport affordable.", synonyms: ["grant", "financial aid"], antonyms: ["tax"], phrases: ["government subsidy", "provide subsidies"], useCase: "Phần giải pháp/chính sách kinh tế." },
+      { id: "affordable", word: "affordable", pos: "adj", level: "B2", register: "neutral", skills: ["W", "S"], def: "vừa túi tiền", example: "Cities need more <span class='hi'>affordable</span> housing.", synonyms: ["reasonable", "economical"], antonyms: ["expensive", "costly"], phrases: ["affordable housing", "affordable price"], useCase: "Bàn nhà ở, chi phí sống." },
+      { id: "lavish", word: "lavish", pos: "adj", level: "C1", register: "neutral", skills: ["W", "S"], def: "xa hoa, hào phóng quá mức", example: "They spent <span class='hi'>lavish</span> sums on the wedding.", synonyms: ["extravagant", "opulent"], antonyms: ["modest", "frugal"], phrases: ["lavish spending", "a lavish lifestyle"], useCase: "Mô tả tiêu xài xa xỉ." },
+      { id: "accumulate", word: "accumulate", pos: "verb", level: "C1", register: "formal", skills: ["W"], def: "tích lũy dần", example: "Over time, small savings <span class='hi'>accumulate</span>.", synonyms: ["build up", "amass"], antonyms: ["dissipate"], phrases: ["accumulate wealth", "accumulate debt"], useCase: "Nói về tích lũy tài sản/nợ." },
+    ],
+    quiz: [
+      { q: "Trái nghĩa của 'frugal':", options: ["thrifty", "economical", "extravagant"], answer: 2, explain: "extravagant = phung phí; frugal = tằn tiện." },
+      { q: "'subsidy' là:", options: ["khoản thuế", "khoản trợ cấp", "khoản nợ"], answer: 1, explain: "subsidy = trợ cấp; thường trái với tax." },
+      { q: "'affordable housing' là nhà ở:", options: ["xa xỉ", "vừa túi tiền", "bỏ hoang"], answer: 1, explain: "affordable = trong khả năng chi trả." },
+    ],
+  },
+  {
+    id: "science-research",
+    name: "Khoa học & Nghiên cứu",
+    cards: [
+      { id: "hypothesis", word: "hypothesis", pos: "noun", level: "C1", register: "formal", skills: ["W", "R"], def: "giả thuyết", example: "The experiment tested a simple <span class='hi'>hypothesis</span>.", synonyms: ["theory", "premise"], antonyms: [], phrases: ["test a hypothesis", "support the hypothesis"], useCase: "Chủ đề khoa học, nghiên cứu." },
+      { id: "breakthrough", word: "breakthrough", pos: "noun", level: "B2", register: "neutral", skills: ["W", "S"], def: "bước đột phá", example: "The vaccine was a major <span class='hi'>breakthrough</span>.", synonyms: ["advance", "discovery"], antonyms: ["setback"], phrases: ["a major breakthrough", "medical breakthrough"], useCase: "Nói thành tựu lớn trong khoa học/y học." },
+      { id: "empirical", word: "empirical", pos: "adj", level: "C2", register: "formal", skills: ["W"], def: "dựa trên thực nghiệm/bằng chứng", example: "There is little <span class='hi'>empirical</span> evidence for the claim.", synonyms: ["evidence-based", "observed"], antonyms: ["theoretical", "anecdotal"], phrases: ["empirical evidence", "empirical research"], useCase: "Tăng độ học thuật khi nói về bằng chứng." },
+      { id: "innovation", word: "innovation", pos: "noun", level: "B2", register: "neutral", skills: ["W", "S"], def: "sự đổi mới, sáng kiến", example: "<span class='hi'>Innovation</span> drives economic growth.", synonyms: ["invention", "advancement"], antonyms: ["stagnation"], phrases: ["technological innovation", "drive innovation"], useCase: "Chủ đề công nghệ, kinh tế." },
+      { id: "conduct", word: "conduct", pos: "verb", level: "B2", register: "formal", skills: ["W", "R"], def: "tiến hành (nghiên cứu, khảo sát)", example: "Scientists <span class='hi'>conducted</span> a large-scale study.", synonyms: ["carry out", "perform"], antonyms: [], phrases: ["conduct research", "conduct a survey", "conduct an experiment"], useCase: "Dẫn dắt việc nghiên cứu — rất hay dùng." },
+      { id: "groundbreaking", word: "groundbreaking", pos: "adj", level: "C1", register: "neutral", skills: ["W", "S"], def: "mang tính tiên phong, mở đường", example: "The study produced <span class='hi'>groundbreaking</span> findings.", synonyms: ["pioneering", "revolutionary"], antonyms: ["conventional"], phrases: ["groundbreaking research", "groundbreaking discovery"], useCase: "Khen một nghiên cứu/phát minh đột phá." },
+    ],
+    quiz: [
+      { q: "'conduct research' nghĩa là:", options: ["dừng nghiên cứu", "tiến hành nghiên cứu", "công bố nghiên cứu"], answer: 1, explain: "conduct = tiến hành; collocation: conduct research/a survey." },
+      { q: "'empirical evidence' là bằng chứng:", options: ["dựa trên thực nghiệm/quan sát", "dựa trên cảm tính", "dựa trên tin đồn"], answer: 0, explain: "empirical = dựa trên thực nghiệm; trái nghĩa anecdotal/theoretical." },
+      { q: "Trái nghĩa của 'breakthrough':", options: ["advance", "discovery", "setback"], answer: 2, explain: "setback = bước lùi; hai cái kia đồng nghĩa breakthrough." },
+    ],
+  },
+];
+
+// Nguồn từ vựng IELTS uy tín, miễn phí — dẫn link để học sâu thêm (không sao chép).
+export const VOCAB_SOURCES: { name: string; url: string; note: string }[] = [
+  { name: "Academic Word List (AWL)", url: "https://www.victoria.ac.nz/lals/resources/academicwordlist", note: "570 word family hay gặp nhất trong văn học thuật (nghiên cứu của Coxhead) — nền tảng cho band 7+." },
+  { name: "British Council — Vocabulary", url: "https://learnenglish.britishcouncil.org/vocabulary", note: "Bài học từ vựng theo chủ đề, có ví dụ và bài tập." },
+  { name: "Cambridge Dictionary", url: "https://dictionary.cambridge.org/", note: "Tra nghĩa, phát âm, collocation và ví dụ chuẩn Anh-Anh." },
+  { name: "IELTS Liz — Vocabulary", url: "https://ieltsliz.com/ielts-vocabulary/", note: "Từ vựng theo chủ đề và theo dạng câu hỏi, do giáo viên IELTS soạn." },
 ];

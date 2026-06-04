@@ -65,4 +65,46 @@ export const READING: ReadingTest[] = [
       { q: "What does the passage say about the '21 days' claim?", options: ["It is well supported by research", "It has little scientific basis", "It applies only to exercise"], answer: 1, explain: "Đoạn D: 'little scientific basis'." },
     ],
   },
+  {
+    id: "sleep-debt",
+    title: "The hidden cost of lost sleep",
+    paragraphs: [
+      { label: "A", text: "Modern societies tend to treat sleep as a luxury rather than a necessity. Workers boast about how little they need, and late nights are worn as a badge of dedication. Yet a growing body of research suggests that chronic shortfalls in sleep accumulate into what scientists call a 'sleep debt' — a deficit that cannot simply be cleared with a single long lie-in at the weekend." },
+      { label: "B", text: "The consequences extend well beyond feeling tired. Studies have linked persistent sleep loss to impaired memory, weakened immunity, and a higher risk of conditions such as heart disease and diabetes. Perhaps most striking is the effect on judgement: people who are sleep-deprived consistently rate their own performance as normal, even as objective tests show it declining sharply. In other words, the tired brain is a poor judge of its own tiredness." },
+      { label: "C", text: "Why, then, do so many people deprive themselves? Part of the answer lies in artificial light, which delays the body's natural signals to sleep. Screens are particularly disruptive, as the blue light they emit suppresses melatonin, the hormone that prepares the body for rest. The result is a cycle in which technology both fills our evenings and undermines the sleep that should follow them." },
+      { label: "D", text: "Some employers have begun to take note, introducing later start times or quiet rooms for napping. Early evidence suggests such measures improve both wellbeing and productivity. Still, researchers caution that workplace tweaks address only the symptoms; the deeper shift required is cultural — learning, once again, to value rest." },
+    ],
+    tfng: [
+      { q: "Sleep debt can be fully repaid with one long sleep at the weekend.", answer: "False", explain: "Đoạn A: 'cannot simply be cleared with a single long lie-in'." },
+      { q: "Sleep-deprived people tend to overestimate how well they are performing.", answer: "True", explain: "Đoạn B: họ tự đánh giá bình thường trong khi test cho thấy sa sút." },
+      { q: "Blue light from screens increases melatonin production.", answer: "False", explain: "Đoạn C: ánh sáng xanh 'suppresses melatonin' (ức chế, không tăng)." },
+      { q: "Napping rooms are now required by law in most countries.", answer: "Not Given", explain: "Bài chỉ nói một số nơi làm tự nguyện, không nói luật bắt buộc." },
+    ],
+    mcq: [
+      { q: "What is the main point of paragraph B?", options: ["Sleep loss only makes people tired", "Sleep loss has serious effects, including poor self-judgement", "Sleep loss improves immunity"], answer: 1, explain: "Đoạn B liệt kê hậu quả nghiêm trọng + việc não mệt đánh giá sai chính nó." },
+      { q: "According to paragraph D, workplace measures are…", options: ["a complete solution", "helpful but only address symptoms", "ineffective"], answer: 1, explain: "Đoạn D: cải thiện nhưng chỉ chữa triệu chứng; cần thay đổi văn hóa." },
+      { q: "The phrase 'worn as a badge of dedication' (paragraph A) suggests people…", options: ["are ashamed of little sleep", "take pride in sleeping little", "sleep a lot"], answer: 1, explain: "Nghĩa: khoe ngủ ít như một niềm tự hào về sự tận tụy." },
+    ],
+  },
+  {
+    id: "vertical-cities",
+    title: "Building upwards, living closer",
+    paragraphs: [
+      { label: "A", text: "As the world's population concentrates in cities, planners face a stark choice: spread outwards, consuming farmland and lengthening commutes, or build upwards, packing more people onto less land. Increasingly, the answer is height. The skyscraper, once a symbol of corporate prestige, is being reimagined as a tool for sustainable living." },
+      { label: "B", text: "Density brings clear benefits. Compact cities require shorter journeys, making public transport, walking, and cycling more practical and cutting per-person emissions. Services from hospitals to broadband become cheaper to provide when users are clustered together. Studies repeatedly find that residents of dense, well-planned cities have smaller carbon footprints than their suburban counterparts." },
+      { label: "C", text: "Yet height alone guarantees nothing. Towers built without parks, shops, or transport links can become isolating, and poorly designed high-rises have a long history of social problems. The success of dense living depends less on how tall buildings are than on what surrounds them — whether residents can meet daily needs without a car, and whether public spaces invite community rather than discourage it." },
+      { label: "D", text: "The most promising developments therefore mix homes, offices, and greenery within walking distance, sometimes within a single building. Critics warn that such projects can be expensive and risk excluding lower-income residents. Designing density that is both green and fair, they argue, remains the central challenge of the modern city." },
+    ],
+    tfng: [
+      { q: "Building cities upwards can reduce the loss of farmland.", answer: "True", explain: "Đoạn A: xây lên cao thay vì lan rộng 'consuming farmland'." },
+      { q: "Residents of dense cities generally have larger carbon footprints than suburban residents.", answer: "False", explain: "Đoạn B: ngược lại — dấu chân carbon NHỎ hơn." },
+      { q: "The height of a building is the main factor determining whether dense living succeeds.", answer: "False", explain: "Đoạn C: phụ thuộc vào thứ XUNG QUANH, không phải chiều cao." },
+      { q: "Most governments now ban the construction of suburbs.", answer: "Not Given", explain: "Bài không nói gì về việc cấm xây ngoại ô." },
+    ],
+    mcq: [
+      { q: "According to paragraph B, density makes services…", options: ["more expensive", "cheaper to provide", "unnecessary"], answer: 1, explain: "Đoạn B: dịch vụ rẻ hơn khi người dùng tập trung." },
+      { q: "What does paragraph C argue?", options: ["Tall buildings always fail", "What surrounds a building matters more than its height", "Cars are essential in cities"], answer: 1, explain: "Trọng tâm đoạn C: yếu tố quyết định là môi trường xung quanh." },
+      { q: "What is the 'central challenge' mentioned in paragraph D?", options: ["Building the tallest tower", "Making density both green and fair", "Removing all green space"], answer: 1, explain: "Đoạn D nêu rõ: density vừa xanh vừa công bằng." },
+    ],
+  },
 ];

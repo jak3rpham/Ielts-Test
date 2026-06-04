@@ -207,4 +207,55 @@ export const GRAMMAR: GrammarLesson[] = [
       { q: "Cụm đúng để đếm 'advice':", options: ["three advices", "three pieces of advice", "three advice"], answer: 1, explain: "Danh từ không đếm được phải mượn cụm định lượng: 'pieces of advice'." },
     ],
   },
+  {
+    id: "prepositions",
+    title: "Giới từ hay sai",
+    band: "b6",
+    intro: "Giới từ đi theo từ chứ không theo logic dịch word-by-word. Đây là lỗi rải rác khắp bài của người Việt.",
+    points: [
+      { rule: "Giới từ chỉ thời gian: in / on / at", examples: [{ kind: "good", html: "<span class='hi'>in</span> 2020, <span class='hi'>in</span> July; <span class='hi'>on</span> Monday, <span class='hi'>on</span> 5th May; <span class='hi'>at</span> 7 p.m., <span class='hi'>at</span> night" }] },
+      { rule: "Động/tính từ đi với giới từ cố định — học theo cụm", examples: [{ kind: "good", html: "depend <span class='hi'>on</span>, result <span class='hi'>in</span>, responsible <span class='hi'>for</span>, aware <span class='hi'>of</span>, good <span class='hi'>at</span>" }] },
+    ],
+    vietMistake: "Lỗi điển hình: <i>discuss about</i> (sai — 'discuss' không cần giới từ), <i>depend of</i> (phải là 'depend on'), <i>in Monday</i> (phải là 'on Monday'). Học giới từ <b>cùng với từ</b>, đừng dịch suy đoán.",
+    quiz: [
+      { q: "Câu nào đúng?", options: ["We discussed about the problem.", "We discussed the problem.", "We discussed on the problem."], answer: 1, explain: "'discuss' là ngoại động từ, KHÔNG cần giới từ. (Nhưng 'talk about' thì cần.)" },
+      { q: "Điền: 'The outcome depends ___ several factors.'", options: ["of", "on", "to"], answer: 1, explain: "Cụm cố định: 'depend on'." },
+    ],
+  },
+  {
+    id: "punctuation",
+    title: "Dấu câu & lỗi nối câu",
+    band: "b7",
+    intro: "Comma splice (nối hai câu hoàn chỉnh bằng dấu phẩy) là lỗi rất phổ biến và làm tụt điểm Grammar dù ý đúng.",
+    points: [
+      { rule: "KHÔNG nối hai mệnh đề độc lập chỉ bằng dấu phẩy", examples: [{ kind: "bad", html: "Pollution is rising, it harms public health." }, { kind: "good", html: "Pollution is rising<span class='hi'>, and</span> it harms public health." }, { kind: "good", html: "Pollution is rising<span class='hi'>;</span> it harms public health." }] },
+      { rule: "Cách sửa: thêm liên từ, dùng dấu chấm phẩy, hoặc tách câu", examples: [{ kind: "good", html: "Pollution is rising. <span class='hi'>This</span> harms public health." }] },
+    ],
+    vietMistake: "Comma splice (<i>câu A, câu B</i>) là lỗi 'ẩn' nhiều người không nhận ra. Hai câu hoàn chỉnh phải nối bằng <b>liên từ</b> (and/but/so), <b>dấu chấm phẩy</b>, hoặc <b>tách thành hai câu</b>.",
+    quiz: [
+      { q: "Câu nào KHÔNG mắc lỗi comma splice?", options: ["The plan failed, it was too costly.", "The plan failed because it was too costly.", "The plan failed, it cost too much."], answer: 1, explain: "Dùng liên từ 'because' để nối là đúng. Hai câu kia nối hai mệnh đề độc lập bằng dấu phẩy → comma splice." },
+    ],
+  },
+  {
+    id: "modal-hedging",
+    title: "Giảm nhẹ khẳng định (hedging)",
+    band: "b7",
+    intro: "Văn học thuật tránh khẳng định tuyệt đối. Dùng modal và cụm giảm nhẹ để lập luận thận trọng, chừa đường lùi — đặc trưng band 7+.",
+    points: [
+      { rule: "Dùng modal để giảm độ chắc chắn", examples: [{ kind: "bad", html: "Technology destroys jobs." }, { kind: "good", html: "Technology <span class='hi'>may</span> destroy <span class='hi'>some</span> jobs." }] },
+      { rule: "Cụm hedging học thuật", examples: [{ kind: "good", html: "<span class='hi'>tend to</span>, <span class='hi'>it could be argued that</span>, <span class='hi'>arguably</span>, <span class='hi'>in many cases</span>" }] },
+    ],
+    vietMistake: "Khẳng định tuyệt đối (<i>X always causes Y</i>, <i>everyone agrees</i>) dễ bị bắt bẻ và nghe non. Giám khảo đánh giá cao lập luận có chừng mực: 'tends to', 'in most cases', 'may'.",
+    quiz: [
+      { q: "Câu nào 'học thuật' và an toàn hơn?", options: ["Social media destroys real friendships.", "Social media can, in some cases, weaken real friendships."], answer: 1, explain: "Câu sau dùng 'can' + 'in some cases' để giảm nhẹ — chừng mực, khó bị phản bác, đúng chất band 7+." },
+    ],
+  },
+];
+
+// Nhóm phân loại ngữ pháp — quyết định thứ tự & cách gom hiển thị. Nền tảng lên đầu.
+export const GRAMMAR_CATEGORIES: { name: string; note?: string; ids: string[] }[] = [
+  { name: "Nền tảng", note: "Bắt đầu từ đây — sửa lỗi gốc trước", ids: ["articles", "countable-agreement", "tenses", "prepositions"] },
+  { name: "Câu & mệnh đề", note: "Dựng câu phức, đa dạng cấu trúc", ids: ["complex-sentences", "relative-clauses", "conditionals", "passive", "punctuation"] },
+  { name: "Mạch lạc & học thuật", note: "Chất văn band 7+", ids: ["cohesion", "nominalisation", "modal-hedging"] },
+  { name: "Nâng cao (band 8)", note: "Điểm nhấn ấn tượng", ids: ["inversion-cleft"] },
 ];
