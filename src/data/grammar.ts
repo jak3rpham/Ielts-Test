@@ -174,4 +174,37 @@ export const GRAMMAR: GrammarLesson[] = [
       { q: "Câu chẻ nhấn mạnh 'practice':", options: ["What you need is practice.", "You need practice only.", "Practice is what need you."], answer: 0, explain: "'What you need is…' là cấu trúc cleft chuẩn để nhấn vào 'practice'." },
     ],
   },
+  {
+    id: "cohesion",
+    title: "Liên kết & mạch lạc (cohesion)",
+    band: "b7",
+    intro: "Coherence & Cohesion chiếm 25% điểm. Band 7 liên kết tự nhiên bằng nhiều cách, không chỉ rải 'Moreover' khắp nơi.",
+    points: [
+      { rule: "Referencing — dùng đại từ thay vì lặp danh từ", examples: [{ kind: "bad", html: "The policy failed. The policy was poorly designed." }, { kind: "good", html: "The policy failed because <span class='hi'>it</span> was poorly designed." }] },
+      { rule: "'This/These/Such + danh từ' để nối ý mượt", examples: [{ kind: "good", html: "Many teenagers sleep poorly. <span class='hi'>This trend</span> harms their academic performance." }] },
+      { rule: "Đa dạng từ nối, đặt đúng chỗ", examples: [{ kind: "good", html: "<span class='hi'>As a result</span>, …", }, { kind: "good", html: "<span class='hi'>In contrast</span>, …" }] },
+    ],
+    vietMistake: "Band 7 KHÔNG thưởng cho số lượng từ nối. Mở mỗi câu bằng một linking word ('Moreover… Furthermore… In addition…') nghe máy móc và còn bị trừ. Liên kết tốt nhất thường là <b>referencing</b> (this/it/such), không phải nhồi liên từ.",
+    quiz: [
+      { q: "Cách liên kết tự nhiên nhất:", options: ["Lặp lại danh từ ở mỗi câu", "Dùng 'it/this/such' để chỉ lại ý trước", "Bắt đầu mọi câu bằng 'Moreover'"], answer: 1, explain: "Referencing (this/it/such) là cách nối mượt và 'band 7' nhất; lặp từ và nhồi linking words đều bị trừ." },
+      { q: "Chọn câu mạch lạc hơn:", options: ["Pollution rises. Pollution affects health. Pollution costs money.", "Pollution is rising, and this not only affects health but also imposes economic costs."], answer: 1, explain: "Câu sau gộp ý, dùng 'this' để nối và cấu trúc 'not only… but also' — mạch lạc và đa dạng hơn hẳn." },
+    ],
+  },
+  {
+    id: "countable-agreement",
+    title: "Danh từ đếm được & hòa hợp chủ–vị",
+    band: "b6",
+    intro: "Hai lỗi kéo điểm Grammar nhiều nhất với người Việt: thêm 's' vào danh từ không đếm được, và chia sai động từ theo chủ ngữ.",
+    points: [
+      { rule: "Danh từ không đếm được KHÔNG thêm 's', KHÔNG dùng 'a'", examples: [{ kind: "bad", html: "informations, advices, researches, equipments" }, { kind: "good", html: "<span class='hi'>information, advice, research, equipment</span> (luôn số ít)" }] },
+      { rule: "Muốn đếm thì thêm cụm định lượng", examples: [{ kind: "good", html: "a <span class='hi'>piece of</span> advice, two <span class='hi'>pieces of</span> information" }] },
+      { rule: "Động từ hòa hợp với chủ ngữ thật", examples: [{ kind: "bad", html: "The number of students are rising." }, { kind: "good", html: "The number of students <span class='hi'>is</span> rising." }] },
+    ],
+    vietMistake: "Lỗi kinh điển: <i>many informations</i>, <i>some advices</i>, <i>a research</i> — đều sai vì đây là danh từ KHÔNG đếm được. Và <b>'The number of … is'</b> (số ít) còn <b>'A number of … are'</b> (số nhiều) — rất hay lẫn.",
+    quiz: [
+      { q: "Câu nào đúng?", options: ["She gave me many useful informations.", "She gave me a lot of useful information.", "She gave me an useful information."], answer: 1, explain: "'information' không đếm được → không 's', không 'a/an'. 'a lot of' dùng được với danh từ không đếm được." },
+      { q: "Điền: 'The number of applicants ___ increased.'", options: ["have", "has", "are"], answer: 1, explain: "'The number of …' là chủ ngữ số ít → 'has'. (Khác 'A number of …' số nhiều → 'have'.)" },
+      { q: "Cụm đúng để đếm 'advice':", options: ["three advices", "three pieces of advice", "three advice"], answer: 1, explain: "Danh từ không đếm được phải mượn cụm định lượng: 'pieces of advice'." },
+    ],
+  },
 ];

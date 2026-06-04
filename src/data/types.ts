@@ -36,6 +36,13 @@ export interface VocabCard {
   pos: string;
   def: string;
   example: string; // HTML
+  level?: "B1" | "B2" | "C1" | "C2"; // CEFR ~ band
+  synonyms?: string[];
+  antonyms?: string[];
+  phrases?: string[]; // collocations / cụm đi kèm
+  register?: "formal" | "neutral" | "informal"; // slang/informal hợp Speaking, không hợp Writing
+  skills?: ("W" | "S" | "R" | "L")[]; // mạnh ở kỹ năng nào: Writing/Speaking/Reading/Listening
+  useCase?: string; // dùng tốt trong tình huống nào
 }
 
 export interface VocabTopic {

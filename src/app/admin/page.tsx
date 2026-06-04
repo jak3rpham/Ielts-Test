@@ -17,7 +17,7 @@ type Row = { id: string; type: string; payload: { title?: string } };
 export default function AdminPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
-  const [tab, setTab] = useState<"reading" | "listening">("reading");
+  const [tab, setTab] = useState<"reading" | "listening" | "vocab" | "tips" | "frameworks">("reading");
   const [rows, setRows] = useState<Row[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -75,11 +75,18 @@ export default function AdminPage() {
       <div className="chips">
         <button className={"chip" + (tab === "reading" ? " active" : "")} onClick={() => setTab("reading")}>Reading</button>
         <button className={"chip" + (tab === "listening" ? " active" : "")} onClick={() => setTab("listening")}>Listening</button>
+        <button className={"chip" + (tab === "vocab" ? " active" : "")} onClick={() => setTab("vocab")}>Từ vựng</button>
+        <button className={"chip" + (tab === "tips" ? " active" : "")} onClick={() => setTab("tips")}>Mẹo</button>
+        <button className={"chip" + (tab === "frameworks" ? " active" : "")} onClick={() => setTab("frameworks")}>Cấu trúc</button>
       </div>
 
       {msg && <div className="note" style={{ marginBottom: 14 }}>{msg}</div>}
 
-      {tab === "reading" ? <ReadingForm onSave={save} /> : <ListeningForm onSave={save} />}
+      {tab === "reading" && <ReadingForm onSave={save} />}
+      {tab === "listening" && <ListeningForm onSave={save} />}
+      {tab === "vocab" && <JsonImporter type="vocab" label="chủ đề từ vựng" template={TPL_VOCAB} onSave={save} />}
+      {tab === "tips" && <JsonImporter type="tips" label="nhóm mẹo" template={TPL_TIPS} onSave={save} />}
+      {tab === "frameworks" && <JsonImporter type="frameworks" label="mô hình" template={TPL_FRAMEWORK} onSave={save} />}
 
       <div className="card" style={{ marginTop: 22 }}>
         <h3 style={{ fontSize: 17 }}>Đề đã lưu trên Supabase</h3>
@@ -220,6 +227,90 @@ function ListeningForm({ onSave }: { onSave: (id: string, type: string, payload:
 
       <div style={{ marginTop: 18 }}>
         <button className="btn" onClick={build} disabled={!title.trim()}>Lưu đề Listening</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- JSON importer (vocab / tips / frameworks) ---------- */
+const TPL_VOCAB = `{
+  "id": "topic-moi",
+  "name": "Tên chủ đề",
+  "cards": [
+    {
+      "id": "tu1", "word": "word", "pos": "verb", "level": "C1",
+      "register": "formal", "skills": ["W","S"],
+      "def": "nghĩa tiếng Việt",
+      "example": "Câu ví dụ có <span class='hi'>word</span>.",
+      "synonyms": ["syn1","syn2"], "antonyms": ["ant1"],
+      "phrases": ["collocation 1","collocation 2"],
+      "useCase": "Dùng khi nào"
+    }
+  ],
+  "quiz": [
+    { "q": "Câu hỏi?", "options": ["A","B","C"], "answer": 1, "explain": "Giải thích." }
+  ]
+}`;
+
+const TPL_TIPS = `{
+  "id": "nhom-moi",
+  "name": "Tên nhóm mẹo",
+  "band": "b7",
+  "intro": "Giới thiệu ngắn.",
+  "tips": [
+    { "tip": "Tiêu đề mẹo", "detail": "Diễn giải chi tiết." }
+  ]
+}`;
+
+const TPL_FRAMEWORK = `{
+  "id": "mo-hinh-moi",
+  "name": "Tên mô hình",
+  "skill": "Writing",
+  "when": "Dùng khi nào.",
+  "steps": [
+    { "letter": "P", "name": "Bước 1", "desc": "Mô tả bước." }
+  ],
+  "example": "Ví dụ áp dụng (có thể dùng <span class='hi'>...</span>).",
+  "caveat": "Lưu ý khi dùng sai."
+}`;
+
+function JsonImporter({ type, label, template, onSave }: { type: string; label: string; template: string; onSave: (id: string, type: string, payload: unknown) => void }) {
+  const [text, setText] = useState(template);
+  const [err, setErr] = useState<string | null>(null);
+
+  function save() {
+    setErr(null);
+    let obj;
+    try {
+      obj = JSON.parse(text);
+    } catch (e) {
+      setErr("JSON sai cú pháp: " + String(e));
+      return;
+    }
+    if (!obj.id || typeof obj.id !== "string") {
+      setErr("Thiếu trường 'id' (chuỗi, duy nhất).");
+      return;
+    }
+    onSave(obj.id, type, obj);
+  }
+
+  return (
+    <div className="card">
+      <h3>Thêm {label} (dán JSON)</h3>
+      <p style={{ fontSize: 13.5, color: "var(--ink-soft)", marginBottom: 10 }}>
+        Sửa mẫu bên dưới, hoặc dán JSON bạn đã chuẩn bị (có thể nhờ Claude format từ nội dung thô). Đặt <code>id</code> mới, không trùng.
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        spellCheck={false}
+        rows={16}
+        style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid var(--line)", fontFamily: "var(--mono)", fontSize: 12.5, lineHeight: 1.55, background: "#fbf6ee" }}
+      />
+      {err && <div className="vmis" style={{ marginTop: 10 }}>{err}</div>}
+      <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+        <button className="btn" onClick={save}>Lưu</button>
+        <button className="btn ghost sm" onClick={() => { setText(template); setErr(null); }}>Khôi phục mẫu</button>
       </div>
     </div>
   );

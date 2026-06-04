@@ -13,6 +13,8 @@ const TABS = [
   { href: "/reading", num: "04", label: "Reading" },
   { href: "/writing", num: "05", label: "Writing T2" },
   { href: "/speaking", num: "06", label: "Speaking" },
+  { href: "/tips", num: "07", label: "Mẹo" },
+  { href: "/frameworks", num: "08", label: "Cấu trúc" },
 ];
 
 export default function Nav() {
