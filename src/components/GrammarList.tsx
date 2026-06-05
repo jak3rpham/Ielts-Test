@@ -3,33 +3,35 @@
 import { useState } from "react";
 import { GRAMMAR, GRAMMAR_CATEGORIES } from "@/data/grammar";
 import { GrammarLesson } from "@/data/types";
+import { useLang, pick } from "@/lib/i18n";
 import Quiz from "./Quiz";
 
 const BAND_LABEL: Record<string, string> = { b6: "Nền tảng", b7: "Band 7", b8: "Band 8" };
 const byId = Object.fromEntries(GRAMMAR.map((g) => [g.id, g])) as Record<string, GrammarLesson>;
 
 function Lesson({ g }: { g: GrammarLesson }) {
+  const { lang } = useLang();
   return (
     <details className="acc">
       <summary>
-        <span>{g.title} <span className={"pill " + g.band}>{BAND_LABEL[g.band]}</span></span>
+        <span>{pick(lang, g.title)} <span className={"pill " + g.band}>{BAND_LABEL[g.band]}</span></span>
         <span className="chev">›</span>
       </summary>
       <div className="acc-body">
-        <p className="lesson-intro">{g.intro}</p>
+        <p className="lesson-intro">{pick(lang, g.intro)}</p>
         {g.points.map((p, i) => (
           <div className="rule" key={i}>
-            <div className="rule-t">{p.rule}</div>
+            <div className="rule-t">{pick(lang, p.rule)}</div>
             {p.examples.map((e, j) => (
               <div className="ex" key={j}>
                 {e.kind === "good" && <span className="good">✓ </span>}
                 {e.kind === "bad" && <span className="bad">✗ </span>}
-                <span dangerouslySetInnerHTML={{ __html: e.html }} />
+                <span dangerouslySetInnerHTML={{ __html: pick(lang, e.html) }} />
               </div>
             ))}
           </div>
         ))}
-        <div className="vmis"><b>⚠ Lỗi người Việt hay mắc:</b> <span dangerouslySetInnerHTML={{ __html: g.vietMistake }} /></div>
+        <div className="vmis"><b>⚠ {pick(lang, { vi: "Lỗi người Việt hay mắc:", en: "Common mistake for Vietnamese learners:" })}</b> <span dangerouslySetInnerHTML={{ __html: pick(lang, g.vietMistake) }} /></div>
         <Quiz items={g.quiz} ns={`grammar:${g.id}`} />
       </div>
     </details>

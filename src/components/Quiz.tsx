@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { QuizItem } from "@/data/types";
 import { useProgress } from "@/lib/progress";
+import { useLang, pick } from "@/lib/i18n";
 
 export default function Quiz({ items, ns }: { items: QuizItem[]; ns: string }) {
   const { update } = useProgress();
+  const { lang } = useLang();
   const [picked, setPicked] = useState<Record<number, number>>({});
 
   function answer(qi: number, oi: number) {
@@ -24,7 +26,7 @@ export default function Quiz({ items, ns }: { items: QuizItem[]; ns: string }) {
         return (
           <div key={qi} style={{ marginBottom: 14 }}>
             <div className="quiz-q">
-              <span className="qix">Q{qi + 1}.</span> {q.q}
+              <span className="qix">Q{qi + 1}.</span> {pick(lang, q.q)}
             </div>
             <div className="opts">
               {q.options.map((opt, oi) => {
@@ -36,14 +38,14 @@ export default function Quiz({ items, ns }: { items: QuizItem[]; ns: string }) {
                 }
                 return (
                   <button key={oi} className={cls} onClick={() => answer(qi, oi)}>
-                    {opt}
+                    {pick(lang, opt)}
                   </button>
                 );
               })}
             </div>
             {done && (
               <div className="explain">
-                <b>Giải thích:</b> {q.explain}
+                <b>{pick(lang, { vi: "Giải thích:", en: "Explanation:" })}</b> {pick(lang, q.explain)}
               </div>
             )}
           </div>

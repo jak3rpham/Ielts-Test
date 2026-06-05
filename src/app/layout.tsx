@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
+import { LanguageProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "IELTS Studio — Lò luyện band 7.5+",
@@ -20,11 +21,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <Nav />
-        <main>{children}</main>
-        <div className="footer">
-          IELTS Studio — tự build để học và để dạy.
-        </div>
+        <LanguageProvider>
+          <Nav />
+          <main>{children}</main>
+          <div className="footer">
+            IELTS Studio — tự build để học và để dạy.
+          </div>
+        </LanguageProvider>
       </body>
     </html>
   );

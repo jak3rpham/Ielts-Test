@@ -3,30 +3,33 @@
 
 export type Band = "b6" | "b7" | "b8";
 
+// Chuỗi song ngữ: hoặc string (chỉ VI, dùng cho cả 2 ngôn ngữ), hoặc {vi, en?}.
+export type LS = string | { vi: string; en?: string };
+
 export interface Example {
   kind: "good" | "bad" | "plain";
-  html: string; // cho phép <span class="hi/good/bad"> để tô màu
+  html: LS; // cho phép <span class="hi/good/bad">
 }
 
 export interface GrammarPoint {
-  rule: string;
+  rule: LS;
   examples: Example[];
 }
 
 export interface QuizItem {
-  q: string;
-  options: string[];
+  q: LS;
+  options: LS[];
   answer: number; // index đáp án đúng
-  explain: string;
+  explain: LS;
 }
 
 export interface GrammarLesson {
-  id: string; // dùng làm khóa lưu tiến độ
-  title: string;
+  id: string;
+  title: LS;
   band: Band;
-  intro: string;
+  intro: LS;
   points: GrammarPoint[];
-  vietMistake: string; // HTML
+  vietMistake: LS; // HTML
   quiz: QuizItem[];
 }
 

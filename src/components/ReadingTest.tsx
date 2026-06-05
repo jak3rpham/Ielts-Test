@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { ReadingTest } from "@/data/types";
 import { useProgress } from "@/lib/progress";
+import { useLang, pick } from "@/lib/i18n";
 
 const TFNG_OPTS = ["True", "False", "Not Given"] as const;
 
 export default function ReadingTestView({ test }: { test: ReadingTest }) {
   const { update } = useProgress();
+  const { lang } = useLang();
   const [tf, setTf] = useState<Record<number, string>>({});
   const [mc, setMc] = useState<Record<number, number>>({});
   const [graded, setGraded] = useState(false);
@@ -77,7 +79,7 @@ export default function ReadingTestView({ test }: { test: ReadingTest }) {
           {test.mcq.map((q, i) => (
             <div key={i} style={{ marginBottom: 14 }}>
               <div className="quiz-q" style={{ fontSize: 14 }}>
-                <span className="qix">{i + test.tfng.length + 1}.</span> {q.q}
+                <span className="qix">{i + test.tfng.length + 1}.</span> {pick(lang, q.q)}
               </div>
               <div className="opts">
                 {q.options.map((opt, oi) => {
@@ -91,12 +93,12 @@ export default function ReadingTestView({ test }: { test: ReadingTest }) {
                   }
                   return (
                     <button key={oi} className={cls} onClick={() => !graded && setMc((p) => ({ ...p, [i]: oi }))}>
-                      {opt}
+                      {pick(lang, opt)}
                     </button>
                   );
                 })}
               </div>
-              {graded && <div className="explain"><b>Vì sao:</b> {q.explain}</div>}
+              {graded && <div className="explain"><b>Vì sao:</b> {pick(lang, q.explain)}</div>}
             </div>
           ))}
         </div>
