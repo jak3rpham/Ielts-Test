@@ -6,9 +6,12 @@ import { ListeningItem } from "@/data/listening";
 import { useContent } from "@/lib/content";
 import { useProgress } from "@/lib/progress";
 import Timer from "./Timer";
+import { useLang, pick } from "@/lib/i18n";
 
 export default function ListeningStudio() {
   const { update } = useProgress();
+  const { lang } = useLang();
+  const T = (vi: string, en: string) => pick(lang, { vi, en });
   const { items: list } = useContent<ListeningItem>("listening", LISTENING);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -66,29 +69,29 @@ export default function ListeningStudio() {
             </div>
           ) : item.externalLink ? (
             <div className="card" style={{ margin: 0 }}>
-              <h3 style={{ fontSize: 17 }}>Mở bài nghe</h3>
+              <h3 style={{ fontSize: 17 }}>{T("Mở bài nghe", "Open the listening")}</h3>
               <a className="btn" href={item.externalLink} target="_blank" rel="noopener noreferrer">
-                Mở liên kết bài nghe ↗
+                {T("Mở liên kết bài nghe", "Open listening link")} ↗
               </a>
             </div>
           ) : (
             <div className="card" style={{ margin: 0 }}>
-              <h3 style={{ fontSize: 17 }}>Chưa có video</h3>
+              <h3 style={{ fontSize: 17 }}>{T("Chưa có video", "No video yet")}</h3>
               <p style={{ fontSize: 13.5, color: "var(--ink-soft)" }}>
-                Mở <code>src/data/listening.ts</code>, dán <code>youtubeId</code> của video bạn chọn vào mục này.
+                {T("Mở", "Open")} <code>src/data/listening.ts</code>, {T("dán", "paste a")} <code>youtubeId</code> {T("của video bạn chọn vào mục này.", "for your chosen video here.")}
               </p>
             </div>
           )}
-          <div className="note">Nguồn: {item.source}</div>
+          <div className="note">{T("Nguồn", "Source")}: {item.source}</div>
 
           <div className="card" style={{ marginTop: 16 }}>
-            <h3 style={{ fontSize: 16 }}>Nguồn đề chính thống (miễn phí)</h3>
+            <h3 style={{ fontSize: 16 }}>{T("Nguồn đề chính thống (miễn phí)", "Official free test sources")}</h3>
             {OFFICIAL_SOURCES.map((s) => (
               <div key={s.url} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: "1px dashed var(--line)" }}>
                 <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, fontSize: 14 }}>
                   {s.name} ↗
                 </a>
-                <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>{s.note}</div>
+                <div style={{ fontSize: 12.5, color: "var(--ink-soft)" }}>{pick(lang, s.note)}</div>
               </div>
             ))}
           </div>
@@ -96,7 +99,7 @@ export default function ListeningStudio() {
 
         <div>
           <div className="card" style={{ margin: 0 }}>
-            <h3 style={{ fontSize: 17 }}>Câu hỏi</h3>
+            <h3 style={{ fontSize: 17 }}>{T("Câu hỏi", "Questions")}</h3>
             {item.questions.map((q, i) => {
               const correct = graded && answers[i] !== undefined && norm(answers[i]) === norm(q.answer);
               return (
@@ -106,7 +109,7 @@ export default function ListeningStudio() {
                     <input
                       value={answers[i] ?? ""}
                       onChange={(e) => !graded && setAnswers((p) => ({ ...p, [i]: e.target.value }))}
-                      placeholder="Nhập đáp án…"
+                      placeholder={T("Nhập đáp án…", "Type your answer…")}
                       disabled={graded}
                       style={{
                         width: "100%",
@@ -138,7 +141,7 @@ export default function ListeningStudio() {
                   )}
                   {graded && (
                     <div className="explain">
-                      <b>Đáp án:</b> {q.answer}
+                      <b>{T("Đáp án:", "Answer:")}</b> {q.answer}
                       {q.explain ? ` — ${q.explain}` : ""}
                     </div>
                   )}
@@ -148,12 +151,12 @@ export default function ListeningStudio() {
 
             {!graded ? (
               <button className="btn" style={{ width: "100%" }} onClick={grade}>
-                Chấm điểm Listening
+                {T("Chấm điểm Listening", "Grade Listening")}
               </button>
             ) : (
               <div className="score-banner">
                 <div className="scr">{score}/{item.questions.length}</div>
-                <div>Nghe lại đoạn ứng với câu sai để bắt từ khóa.</div>
+                <div>{T("Nghe lại đoạn ứng với câu sai để bắt từ khóa.", "Re-listen to the parts you missed to catch the keywords.")}</div>
               </div>
             )}
           </div>

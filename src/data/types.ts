@@ -37,15 +37,15 @@ export interface VocabCard {
   id: string;
   word: string;
   pos: string;
-  def: string;
-  example: string; // HTML
-  level?: "B1" | "B2" | "C1" | "C2"; // CEFR ~ band
+  def: LS; // nghĩa (song ngữ)
+  example: string; // HTML, câu ví dụ tiếng Anh
+  level?: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"; // CEFR
   synonyms?: string[];
   antonyms?: string[];
   phrases?: string[]; // collocations / cụm đi kèm
-  register?: "formal" | "neutral" | "informal"; // slang/informal hợp Speaking, không hợp Writing
-  skills?: ("W" | "S" | "R" | "L")[]; // mạnh ở kỹ năng nào: Writing/Speaking/Reading/Listening
-  useCase?: string; // dùng tốt trong tình huống nào
+  register?: "formal" | "neutral" | "informal";
+  skills?: ("W" | "S" | "R" | "L")[];
+  useCase?: LS; // dùng tốt khi nào (song ngữ)
 }
 
 export interface VocabTopic {
@@ -58,7 +58,7 @@ export interface VocabTopic {
 export interface ReadingQuestionTFNG {
   q: string;
   answer: "True" | "False" | "Not Given";
-  explain: string;
+  explain: LS;
 }
 
 export interface ReadingTest {
@@ -71,13 +71,13 @@ export interface ReadingTest {
 
 export interface SpeakingQA {
   q: string;
-  tip: string;
+  tip: LS;
 }
 
 export interface SpeakingPart {
   id: string;
-  name: string;
+  name: LS;
   type: "qa" | "cue";
   items?: SpeakingQA[];
-  cue?: { title: string; bullets: string[]; tip: string };
+  cue?: { title: string; bullets: string[]; tip: LS };
 }

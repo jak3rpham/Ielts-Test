@@ -93,6 +93,10 @@ export default function Nav() {
             <span className="num">00</span>{pick(lang, { vi: "Tổng quan", en: "Overview" })}
           </Link>
 
+          <Link href="/mock" className={"tab" + (path.startsWith("/mock") ? " active" : "")}>
+            <span className="num">★</span>{pick(lang, { vi: "Thi thử xếp band", en: "Placement test" })}
+          </Link>
+
           {GROUPS.map((g) => {
             const isOpen = open === pick(lang, g.label);
             const active = inGroup(g.items);

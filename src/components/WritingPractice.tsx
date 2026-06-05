@@ -79,8 +79,8 @@ export default function WritingPractice() {
         value={essay}
         onChange={(e) => setEssay(e.target.value)}
         placeholder="Viết bài của bạn ở đây (mục tiêu ~250 từ)…"
-        rows={12}
-        style={{ width: "100%", padding: "14px", borderRadius: 10, border: "1.5px solid var(--line)", fontSize: 14.5, fontFamily: "var(--body)", lineHeight: 1.6, resize: "vertical" }}
+        rows={18}
+        style={{ width: "100%", padding: "16px", borderRadius: 10, border: "1.5px solid var(--line)", fontSize: 15, fontFamily: "var(--body)", lineHeight: 1.7, resize: "vertical", minHeight: 420 }}
       />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, flexWrap: "wrap", gap: 10 }}>
         <span className="fc-count">{words} từ {words < 250 && words > 0 ? "(nên ≥ 250)" : ""}</span>
