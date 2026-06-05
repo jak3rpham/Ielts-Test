@@ -1,108 +1,98 @@
 // src/data/frameworks.ts
+import type { LS } from "./types";
 
-export interface FrameworkStep {
-  letter?: string;
-  name: string;
-  desc: string;
-}
+export interface FrameworkStep { letter?: string; name: LS; desc: LS; }
 export interface Framework {
   id: string;
-  name: string;
+  name: LS;
   skill: "Writing" | "Speaking";
-  when: string; // dùng khi nào
+  when: LS;
   steps: FrameworkStep[];
-  example?: string; // ví dụ áp dụng (HTML cho phép <span class='hi'>)
-  caveat?: string; // cảnh báo dùng sai
+  example?: LS;
+  caveat?: LS;
 }
+const L = (vi: string, en: string): LS => ({ vi, en });
 
 export const FRAMEWORKS: Framework[] = [
   {
-    id: "intro-2-sentence",
-    name: "Mở bài 2 câu (Writing T2)",
-    skill: "Writing",
-    when: "Mọi dạng essay Task 2.",
+    id: "intro-2-sentence", skill: "Writing",
+    name: L("Mở bài 2 câu (Writing T2)", "Two-sentence introduction (Writing T2)"),
+    when: L("Mọi dạng essay Task 2.", "Every Task 2 essay."),
     steps: [
-      { letter: "1", name: "Paraphrase đề", desc: "Viết lại chủ đề của đề bằng từ đồng nghĩa và cấu trúc khác — không chép lại nguyên văn đề." },
-      { letter: "2", name: "Nêu lập trường (thesis)", desc: "Câu thứ hai nói rõ quan điểm/hướng đi của bài. Giám khảo phải thấy ngay bạn sẽ lập luận gì." },
+      { letter: "1", name: L("Paraphrase đề", "Paraphrase the prompt"), desc: L("Viết lại chủ đề bằng từ đồng nghĩa và cấu trúc khác — không chép nguyên văn đề.", "Restate the topic with synonyms and a different structure — don't copy the prompt.") },
+      { letter: "2", name: L("Nêu lập trường (thesis)", "State your position (thesis)"), desc: L("Câu thứ hai nói rõ quan điểm/hướng đi của bài.", "The second sentence states your stance or the direction of the essay.") },
     ],
-    example: "<span class='hi'>The growing reliance on automation has prompted debate over its impact on employment.</span> While some fear widespread job losses, I would argue that technology ultimately creates more opportunities than it destroys.",
-    caveat: "Tránh mở bài sáo rỗng kiểu 'In this modern era…' hay 'There are many reasons why…'. Vào thẳng chủ đề.",
+    example: L("<span class='hi'>The growing reliance on automation has prompted debate over its impact on employment.</span> While some fear widespread job losses, I would argue that technology ultimately creates more opportunities than it destroys.", "<span class='hi'>The growing reliance on automation has prompted debate over its impact on employment.</span> While some fear widespread job losses, I would argue that technology ultimately creates more opportunities than it destroys."),
+    caveat: L("Tránh mở bài sáo rỗng kiểu 'In this modern era…'. Vào thẳng chủ đề.", "Avoid empty openers like 'In this modern era…'. Get straight to the topic."),
   },
   {
-    id: "peel",
-    name: "PEEL — đoạn thân bài",
-    skill: "Writing",
-    when: "Mỗi đoạn thân bài triển khai MỘT ý chính.",
+    id: "peel", skill: "Writing",
+    name: L("PEEL — đoạn thân bài", "PEEL — body paragraph"),
+    when: L("Mỗi đoạn thân triển khai MỘT ý chính.", "Each body paragraph develops ONE main idea."),
     steps: [
-      { letter: "P", name: "Point — Câu chủ đề", desc: "Câu đầu nêu rõ ý chính của đoạn. Cụ thể, không mơ hồ: 'One major benefit of… is…'." },
-      { letter: "E", name: "Explain — Giải thích", desc: "2–3 câu phát triển: tại sao điều đó đúng, nó vận hành thế nào." },
-      { letter: "E", name: "Example — Ví dụ", desc: "Một ví dụ cụ thể (từ đời thực của bạn cũng được — giám khảo không kiểm chứng)." },
-      { letter: "L", name: "Link — Chốt lại", desc: "Câu cuối nối ý về lại luận điểm/câu hỏi đề, dùng 'so', 'therefore', 'as a result'." },
+      { letter: "P", name: L("Point — Câu chủ đề", "Point — topic sentence"), desc: L("Câu đầu nêu rõ ý chính của đoạn, cụ thể.", "The first sentence states the paragraph's main idea, specifically.") },
+      { letter: "E", name: L("Explain — Giải thích", "Explain"), desc: L("2–3 câu phát triển: tại sao điều đó đúng, nó vận hành thế nào.", "2–3 sentences developing why it's true and how it works.") },
+      { letter: "E", name: L("Example — Ví dụ", "Example"), desc: L("Một ví dụ cụ thể (từ đời thực của bạn cũng được).", "A concrete example (your own real life is fine).") },
+      { letter: "L", name: L("Link — Chốt lại", "Link"), desc: L("Câu cuối nối ý về lại luận điểm/câu hỏi đề.", "A closing sentence tying back to the point or the prompt.") },
     ],
-    example: "<span class='hi'>P:</span> One significant benefit of remote work is improved work-life balance. <span class='hi'>E:</span> Without a daily commute, employees reclaim hours that can be spent on family or rest, which in turn raises job satisfaction. <span class='hi'>E:</span> In my own company, staff who switched to working from home reported noticeably lower stress. <span class='hi'>L:</span> This suggests that flexible arrangements benefit not only workers but also the organisations that employ them.",
-    caveat: "Đừng nhồi nhiều ý vào một đoạn (lỗi 'liệt kê ý hời hợt'). Một ý đào sâu mạnh hơn ba ý nông. Độ sâu thắng độ rộng.",
+    example: L("<span class='hi'>P:</span> One benefit of remote work is improved work-life balance. <span class='hi'>E:</span> Without a commute, employees reclaim hours for family or rest, raising satisfaction. <span class='hi'>E:</span> In my own company, staff who switched reported lower stress. <span class='hi'>L:</span> This suggests flexible arrangements benefit both workers and employers.", "<span class='hi'>P:</span> One benefit of remote work is improved work-life balance. <span class='hi'>E:</span> Without a commute, employees reclaim hours for family or rest, raising satisfaction. <span class='hi'>E:</span> In my own company, staff who switched reported lower stress. <span class='hi'>L:</span> This suggests flexible arrangements benefit both workers and employers."),
+    caveat: L("Đừng nhồi nhiều ý vào một đoạn. Một ý đào sâu mạnh hơn ba ý nông.", "Don't cram many ideas into one paragraph. One developed idea beats three shallow ones."),
   },
   {
-    id: "essay-types",
-    name: "Chọn cấu trúc theo DẠNG đề",
-    skill: "Writing",
-    when: "Đọc đề xong, nhận dạng để chọn đúng cách triển khai.",
+    id: "essay-types", skill: "Writing",
+    name: L("Chọn cấu trúc theo DẠNG đề", "Choosing structure by question TYPE"),
+    when: L("Đọc đề xong, nhận dạng để chọn đúng cách triển khai.", "After reading the prompt, identify the type to pick the right approach."),
     steps: [
-      { name: "Opinion (agree/disagree)", desc: "Nêu lập trường rõ từ mở bài và GIỮ NGUYÊN suốt bài. 2 đoạn thân cùng bảo vệ quan điểm (hoặc 1 đoạn nhượng bộ)." },
-      { name: "Discussion (both views)", desc: "Đoạn 1 trình bày phía A khách quan, đoạn 2 phía B, rồi nêu ý mình. Phải triển khai ĐỦ cả hai phía, lệch một bên thường kẹt band 6." },
-      { name: "Problem / Solution", desc: "Đoạn 1 nêu nguyên nhân/vấn đề, đoạn 2 đề giải pháp THỰC TẾ và cụ thể. Chỉ liệt kê vấn đề là không đủ." },
-      { name: "Two-part question", desc: "Đề hỏi 2 câu → mỗi đoạn thân trả lời một câu. Bỏ sót một câu = partial task response, tụt điểm." },
+      { name: L("Opinion (agree/disagree)", "Opinion (agree/disagree)"), desc: L("Nêu lập trường rõ và GIỮ NGUYÊN suốt bài.", "State a clear stance and KEEP it throughout.") },
+      { name: L("Discussion (both views)", "Discussion (both views)"), desc: L("Triển khai ĐỦ cả hai phía rồi nêu ý mình.", "Develop BOTH sides fully, then give your view.") },
+      { name: L("Problem / Solution", "Problem / Solution"), desc: L("Nguyên nhân + giải pháp THỰC TẾ, cụ thể.", "Causes + REALISTIC, specific solutions.") },
+      { name: L("Two-part question", "Two-part question"), desc: L("Mỗi đoạn thân trả lời một câu. Bỏ sót = tụt điểm.", "Each body answers one question. Skipping one drops your score.") },
     ],
-    caveat: "Lỗi giết điểm số 1 là trả lời thiếu phần đề hỏi. Gạch chân mọi yêu cầu trong đề trước khi viết.",
+    caveat: L("Lỗi giết điểm số 1 là trả lời thiếu phần đề hỏi. Gạch chân mọi yêu cầu.", "The number-one score killer is missing part of the task. Underline every requirement."),
   },
   {
-    id: "conclusion",
-    name: "Kết bài 2 câu",
-    skill: "Writing",
-    when: "Đoạn cuối mọi essay.",
+    id: "conclusion", skill: "Writing",
+    name: L("Kết bài 2 câu", "Two-sentence conclusion"),
+    when: L("Đoạn cuối mọi essay.", "The final paragraph of any essay."),
     steps: [
-      { letter: "1", name: "Khẳng định lại quan điểm", desc: "Tóm lại lập trường bằng từ ngữ KHÁC mở bài (không lặp y nguyên)." },
-      { letter: "2", name: "Câu chốt", desc: "Một câu tổng kết/nhận định cuối. Tuyệt đối KHÔNG thêm ý mới." },
+      { letter: "1", name: L("Khẳng định lại quan điểm", "Restate your position"), desc: L("Tóm lại lập trường bằng từ ngữ KHÁC mở bài.", "Summarise your stance in DIFFERENT words from the intro.") },
+      { letter: "2", name: L("Câu chốt", "Closing thought"), desc: L("Một câu tổng kết. KHÔNG thêm ý mới.", "One summarising sentence. Add NO new ideas.") },
     ],
-    caveat: "Kết bài dài dòng làm bạn cạn giờ soát lỗi. Ngắn gọn 2–3 câu là đủ.",
+    caveat: L("Kết bài dài dòng làm bạn cạn giờ soát lỗi. Ngắn gọn là đủ.", "A long conclusion eats your proofreading time. Keep it short."),
   },
   {
-    id: "are-speaking",
-    name: "Answer–Reason–Example (Speaking P1 & P3)",
-    skill: "Speaking",
-    when: "Mọi câu hỏi Part 1 và Part 3. Cứu tinh khi gặp câu bất ngờ.",
+    id: "are-speaking", skill: "Speaking",
+    name: L("Answer–Reason–Example (Speaking P1 & P3)", "Answer–Reason–Example (Speaking P1 & P3)"),
+    when: L("Mọi câu hỏi Part 1 và Part 3.", "Every Part 1 and Part 3 question."),
     steps: [
-      { letter: "A", name: "Answer — Trả lời thẳng", desc: "Trả lời trực tiếp câu hỏi trước, đừng vòng vo." },
-      { letter: "R", name: "Reason — Lý do", desc: "Giải thích tại sao." },
-      { letter: "E", name: "Example/Detail — Ví dụ/chi tiết", desc: "Một chi tiết cụ thể hoặc ví dụ cá nhân để mở rộng." },
+      { letter: "A", name: L("Answer — Trả lời thẳng", "Answer directly"), desc: L("Trả lời trực tiếp câu hỏi trước, đừng vòng vo.", "Answer the question first, no waffling.") },
+      { letter: "R", name: L("Reason — Lý do", "Reason"), desc: L("Giải thích tại sao.", "Explain why.") },
+      { letter: "E", name: L("Example/Detail", "Example/Detail"), desc: L("Một chi tiết cụ thể hoặc ví dụ cá nhân để mở rộng.", "A concrete detail or personal example to expand.") },
     ],
-    example: "<b>Do you like cooking?</b> <span class='hi'>(A)</span> I do, actually. <span class='hi'>(R)</span> I find it relaxing after a long day at work. <span class='hi'>(E)</span> Lately I've been trying to master Vietnamese dishes — my phở is finally getting there.",
-    caveat: "Trả lời một câu cụt ('Yes, I do.') là án tử cho điểm Fluency. Luôn có ít nhất A-R-E.",
+    example: L("<b>Do you like cooking?</b> <span class='hi'>(A)</span> I do, actually. <span class='hi'>(R)</span> I find it relaxing after work. <span class='hi'>(E)</span> Lately I've been mastering Vietnamese dishes — my phở is finally getting there.", "<b>Do you like cooking?</b> <span class='hi'>(A)</span> I do, actually. <span class='hi'>(R)</span> I find it relaxing after work. <span class='hi'>(E)</span> Lately I've been mastering Vietnamese dishes — my phở is finally getting there."),
+    caveat: L("Trả lời cụt ('Yes, I do.') là án tử cho Fluency. Luôn có ít nhất A-R-E.", "One-word answers ('Yes, I do.') are fatal for Fluency. Always give at least A-R-E."),
   },
   {
-    id: "ppf-speaking",
-    name: "PPF — Past / Present / Future (Speaking P2)",
-    skill: "Speaking",
-    when: "Cue card Part 2, khi sợ cạn ý trước 2 phút.",
+    id: "ppf-speaking", skill: "Speaking",
+    name: L("PPF — Past / Present / Future (Speaking P2)", "PPF — Past / Present / Future (Speaking P2)"),
+    when: L("Cue card Part 2, khi sợ cạn ý trước 2 phút.", "Part 2 cue cards, when you fear running out before 2 minutes."),
     steps: [
-      { letter: "P", name: "Past — Quá khứ", desc: "Bắt đầu, cách bạn gặp/biết nó, tình trạng trước đây (~30–40 giây)." },
-      { letter: "P", name: "Present — Hiện tại", desc: "Tình hình hiện giờ, vì sao bạn thích/quan tâm (~60 giây)." },
-      { letter: "F", name: "Future — Tương lai", desc: "Dự định, viễn cảnh sắp tới (~20–30 giây)." },
+      { letter: "P", name: L("Past — Quá khứ", "Past"), desc: L("Bắt đầu, cách bạn gặp/biết nó (~30–40 giây).", "How you first encountered it (~30–40 sec).") },
+      { letter: "P", name: L("Present — Hiện tại", "Present"), desc: L("Tình hình hiện giờ, vì sao bạn quan tâm (~60 giây).", "The current situation and why it matters to you (~60 sec).") },
+      { letter: "F", name: L("Future — Tương lai", "Future"), desc: L("Dự định, viễn cảnh sắp tới (~20–30 giây).", "Your plans or what's ahead (~20–30 sec).") },
     ],
-    example: "Chủ đề 'a skill you want to learn': <span class='hi'>Past</span> — how you first became interested; <span class='hi'>Present</span> — why it matters to you now; <span class='hi'>Future</span> — how you'll learn it and what it would change.",
-    caveat: "Lợi ích phụ: dùng đủ 3 thì giúp khoe được nhiều cấu trúc ngữ pháp. NHƯNG đừng máy móc — nếu nhắm band 8, áp PPF cứng nhắc cho mọi đề nghe rất gượng và có thể lạc khỏi chủ đề chính. Để các thì chuyển TỰ NHIÊN, đừng ép.",
+    caveat: L("Lợi ích phụ: khoe được nhiều thì. NHƯNG đừng máy móc — nếu nhắm band 8, áp PPF cứng cho mọi đề nghe rất gượng. Để các thì chuyển tự nhiên.", "Bonus: it shows tense range. BUT don't be mechanical — forcing PPF onto every cue card sounds stiff if you aim for band 8. Let tenses shift naturally."),
   },
   {
-    id: "p3-mini-essay",
-    name: "Part 3 như một essay thu nhỏ",
-    skill: "Speaking",
-    when: "Part 3 — câu hỏi trừu tượng, đòi lập luận sâu hơn.",
+    id: "p3-mini-essay", skill: "Speaking",
+    name: L("Part 3 như một essay thu nhỏ", "Part 3 as a mini-essay"),
+    when: L("Part 3 — câu hỏi trừu tượng, đòi lập luận sâu hơn.", "Part 3 — abstract questions needing deeper argument."),
     steps: [
-      { name: "Opinion", desc: "Nêu quan điểm rõ ràng." },
-      { name: "Reason + Explain", desc: "Lý do + giải thích (dùng nominalisation, nhượng bộ: 'One reason may be…, although…')." },
-      { name: "Example", desc: "Ví dụ minh họa." },
-      { name: "Alternative view", desc: "Nhắc phía còn lại để câu trả lời cân bằng, sâu: 'That said, some would argue…'." },
+      { name: L("Opinion", "Opinion"), desc: L("Nêu quan điểm rõ ràng.", "State a clear opinion.") },
+      { name: L("Reason + Explain", "Reason + Explain"), desc: L("Lý do + giải thích, dùng nhượng bộ: 'One reason may be…, although…'.", "Reason + explanation, with concession: 'One reason may be…, although…'.") },
+      { name: L("Example", "Example"), desc: L("Ví dụ minh họa.", "An illustrative example.") },
+      { name: L("Alternative view", "Alternative view"), desc: L("Nhắc phía còn lại để câu trả lời cân bằng: 'That said, some would argue…'.", "Acknowledge the other side for balance: 'That said, some would argue…'.") },
     ],
-    caveat: "Phao kéo dài khi bí: 'What's interesting about that is…' rồi nối sang ý liên quan.",
+    caveat: L("Phao kéo dài khi bí: 'What's interesting about that is…' rồi nối sang ý liên quan.", "Stalling lifeline: 'What's interesting about that is…' then link to a related idea."),
   },
 ];

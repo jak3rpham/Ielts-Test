@@ -1,15 +1,18 @@
 // src/app/writing/page.tsx
+"use client";
 import { WRITING_BANK } from "@/data/speaking";
 import WritingPractice from "@/components/WritingPractice";
 import Timer from "@/components/Timer";
+import { useLang } from "@/lib/i18n";
 
 export default function WritingPage() {
+  const en = useLang().lang === "en";
   return (
     <section>
       <div className="sec-head">
-        <span className="eyebrow">Mục 05</span>
+        <span className="eyebrow">{en ? "Section 05" : "Mục 05"}</span>
         <h2>Writing Task 2</h2>
-        <p>Viết bài rồi để AI chấm theo 4 tiêu chí IELTS. Bên dưới là band descriptor, khung viết, ngân hàng cấu trúc và bài mẫu.</p>
+        <p>{en ? "Write an essay and let AI grade it on the four IELTS criteria. Below: band descriptors, a writing frame, a structure bank and an annotated model." : "Viết bài rồi để AI chấm theo 4 tiêu chí IELTS. Bên dưới là band descriptor, khung viết, ngân hàng cấu trúc và bài mẫu."}</p>
       </div>
 
       <Timer minutes={40} label="Writing Task 2" />
