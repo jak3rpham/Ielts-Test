@@ -26,6 +26,8 @@ export interface MockListeningSection {
   title: string;
   transcript: string;
   questions: MockListeningQ[];
+  youtubeId?: string; // nếu có: embed video thật thay cho giọng máy
+  source?: string; // ghi công kênh
 }
 
 export interface MockWritingTask {

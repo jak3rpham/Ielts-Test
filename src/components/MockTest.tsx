@@ -1,9 +1,10 @@
 // src/components/MockTest.tsx
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { MOCK_TESTS, type MockTest as MT, type MockWritingTask } from "@/data/mocktests";
+import { MOCK_TESTS, type MockTest as MT, type MockWritingTask, type MockListeningSection, type MockReadingPassage } from "@/data/mocktests";
 import { useLang, pick } from "@/lib/i18n";
 import { saveMockAttempt, loadMockAttempts, getLastTestId, type MockAttempt } from "@/lib/mockHistory";
+import { getSupabaseBrowser } from "@/lib/supabase/client";
 import Timer from "@/components/Timer";
 
 type Phase = "intro" | "reading" | "listening" | "writing1" | "writing2" | "grading" | "results";
@@ -39,7 +40,41 @@ export default function MockTest() {
   const [phase, setPhase] = useState<Phase>("intro");
   // chọn 1 đề khác lần trước, cố định trong suốt phiên thi
   const [test, setTest] = useState<MT>(() => MOCK_TESTS[0]);
-  useEffect(() => { setTest(pickTest()); }, []);
+  // Chọn 1 đề khác lần trước, rồi GỘP section do AI sinh (nếu có trong Supabase):
+  // - mocklistening: section listening kèm youtubeId (video thật) -> thay giọng máy
+  // - mockreading: passage reading gốc do AI sinh
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const base = pickTest();
+      const sb = getSupabaseBrowser();
+      if (!sb) { if (active) setTest(base); return; }
+      try {
+        const { data } = await sb
+          .from("content")
+          .select("type, payload")
+          .in("type", ["mocklistening", "mockreading"])
+          .eq("published", true)
+          .order("created_at", { ascending: false });
+        const genL = (data || []).filter((r: { type: string }) => r.type === "mocklistening").map((r: { payload: MockListeningSection }) => r.payload);
+        const genR = (data || []).filter((r: { type: string }) => r.type === "mockreading").map((r: { payload: MockReadingPassage }) => r.payload);
+        // top-up: dùng hết phần do AI sinh, thiếu thì lấy đề file bù cho đủ (R=3, L=4)
+        const topUpL = [...genL.slice(0, 4)];
+        for (let i = 0; topUpL.length < 4 && i < base.listening.length; i++) topUpL.push(base.listening[i]);
+        const topUpR = [...genR.slice(0, 3)];
+        for (let i = 0; topUpR.length < 3 && i < base.reading.length; i++) topUpR.push(base.reading[i]);
+        const merged: MT = {
+          ...base,
+          listening: genL.length ? topUpL : base.listening,
+          reading: genR.length ? topUpR : base.reading,
+        };
+        if (active) setTest(merged);
+      } catch {
+        if (active) setTest(base);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   const [rAns, setRAns] = useState<Record<number, string | number>>({});
   const [lAns, setLAns] = useState<Record<number, string | number>>({});
@@ -232,10 +267,25 @@ export default function MockTest() {
         {listeningBlocks.map((b, bi) => (
           <div key={bi} className="card">
             <span className="eyebrow">{b.section.title}</span>
-            <div style={{ display: "flex", gap: 10, margin: "10px 0 14px" }}>
-              <button className="btn sm" onClick={() => play(bi, b.section.transcript)} disabled={playingSec === bi}>{playingSec === bi ? T("Đang đọc…", "Playing…") : "▶ " + T("Nghe", "Play")}</button>
-              <button className="btn sm ghost" onClick={stop}>■ {T("Dừng", "Stop")}</button>
-            </div>
+            {b.section.youtubeId ? (
+              <div style={{ margin: "10px 0 14px" }}>
+                <div style={{ position: "relative", paddingTop: "56.25%", borderRadius: 12, overflow: "hidden", border: "1.5px solid var(--line)" }}>
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${b.section.youtubeId}`}
+                    title={b.section.title}
+                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+                  />
+                </div>
+                {b.section.source && <div style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 6 }}>{T("Nguồn", "Source")}: {b.section.source}</div>}
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 10, margin: "10px 0 14px" }}>
+                <button className="btn sm" onClick={() => play(bi, b.section.transcript)} disabled={playingSec === bi}>{playingSec === bi ? T("Đang đọc…", "Playing…") : "▶ " + T("Nghe", "Play")}</button>
+                <button className="btn sm ghost" onClick={stop}>■ {T("Dừng", "Stop")}</button>
+              </div>
+            )}
             {b.items.map(({ q, gi }) => (
               <div key={gi} style={{ marginBottom: 14 }}>
                 <div className="quiz-q" style={{ fontSize: 14 }}><span className="qix">{gi + 1}.</span> {q.q}</div>
