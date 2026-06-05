@@ -6,11 +6,11 @@ export default function MockPage() {
   return (
     <section>
       <div className="sec-head">
-        <span className="eyebrow">{en ? "Placement" : "Xếp band"}</span>
-        <h2>{en ? "Mock test — estimate your band" : "Thi thử — ước tính band"}</h2>
+        <span className="eyebrow">{en ? "Full mock" : "Thi thử đầy đủ"}</span>
+        <h2>{en ? "Full mock test — all four skills" : "Thi thử đầy đủ — đủ 4 kỹ năng"}</h2>
         <p>{en
-          ? "A quick 3-skill placement test (Reading · Listening · Writing) drawn at random from an original bank. Ideal for checking a learner's level before teaching."
-          : "Bài thi thử nhanh 3 kỹ năng (Reading · Listening · Writing), rút ngẫu nhiên từ ngân hàng đề gốc. Phù hợp để kiểm tra trình độ người học trước khi dạy."}</p>
+          ? "A full exam simulation: Reading 40 questions, Listening 40 questions, and Writing Task 1 + Task 2. A different test is drawn each time, and every attempt is saved to your profile."
+          : "Mô phỏng bài thi thật: Reading 40 câu, Listening 40 câu, và Writing Task 1 + Task 2. Mỗi lần một đề khác, và mỗi lần thi đều được lưu vào hồ sơ."}</p>
       </div>
       <MockTest />
     </section>

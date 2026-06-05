@@ -1,14 +1,16 @@
 // src/components/MockTest.tsx
 "use client";
-import { useState, useRef, useEffect } from "react";
-import { READING_MOCKS, LISTENING_MOCKS, WRITING_MOCKS } from "@/data/mocktests";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { MOCK_TESTS, type MockTest as MT, type MockWritingTask } from "@/data/mocktests";
 import { useLang, pick } from "@/lib/i18n";
+import { saveMockAttempt, loadMockAttempts, getLastTestId, type MockAttempt } from "@/lib/mockHistory";
+import Timer from "@/components/Timer";
 
-type Phase = "intro" | "reading" | "listening" | "writing" | "results";
+type Phase = "intro" | "reading" | "listening" | "writing1" | "writing2" | "grading" | "results";
 const TFNG = ["True", "False", "Not Given"];
-const rand = (n: number) => Math.floor(Math.random() * n);
+const round2 = (n: number) => Math.round(n * 2) / 2;
 
-// % đúng -> band ước tính (xấp xỉ thang IELTS Academic)
+// % đúng -> band ước tính (xấp xỉ thang IELTS Academic, 40 câu)
 function pctToBand(p: number): number {
   if (p >= 0.9) return 8.5;
   if (p >= 0.83) return 8;
@@ -22,53 +24,75 @@ function pctToBand(p: number): number {
   return 4;
 }
 
+function pickTest(): MT {
+  const last = getLastTestId();
+  const pool = MOCK_TESTS.length > 1 ? MOCK_TESTS.filter((t) => t.id !== last) : MOCK_TESTS;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+type WResult = { band: number | null; weak: string; note?: string };
+
 export default function MockTest() {
   const { lang } = useLang();
   const T = (vi: string, en: string) => pick(lang, { vi, en });
 
   const [phase, setPhase] = useState<Phase>("intro");
-  const [ri] = useState(() => rand(READING_MOCKS.length));
-  const [li] = useState(() => rand(LISTENING_MOCKS.length));
-  const [wi] = useState(() => rand(WRITING_MOCKS.length));
-  const R = READING_MOCKS[ri], L = LISTENING_MOCKS[li], W = WRITING_MOCKS[wi];
+  // chọn 1 đề khác lần trước, cố định trong suốt phiên thi
+  const [test, setTest] = useState<MT>(() => MOCK_TESTS[0]);
+  useEffect(() => { setTest(pickTest()); }, []);
 
   const [rAns, setRAns] = useState<Record<number, string | number>>({});
   const [lAns, setLAns] = useState<Record<number, string | number>>({});
-  const [essay, setEssay] = useState("");
-  const [grading, setGrading] = useState(false);
+  const [essay1, setEssay1] = useState("");
+  const [essay2, setEssay2] = useState("");
   const [result, setResult] = useState<null | {
     reading: { band: number; correct: number; total: number; weak: string };
     listening: { band: number; correct: number; total: number; weak: string };
-    writing: { band: number | null; weak: string; note?: string };
+    writing: { band: number | null; weak: string; note?: string; t1: WResult; t2: WResult };
+    overall: number | null;
+    testId: string;
   }>(null);
+  const [saveMsg, setSaveMsg] = useState("");
 
-  // ---- Listening: trình duyệt đọc transcript ----
-  const [speaking, setSpeaking] = useState(false);
+  // đánh số câu liên tục 1..40 cho từng kỹ năng
+  const readingBlocks = useMemo(() => {
+    let gi = 0;
+    return test.reading.map((p) => ({ passage: p, items: p.questions.map((q) => ({ q, gi: gi++ })) }));
+  }, [test]);
+  const listeningBlocks = useMemo(() => {
+    let gi = 0;
+    return test.listening.map((s) => ({ section: s, items: s.questions.map((q) => ({ q, gi: gi++ })) }));
+  }, [test]);
+  const readingTotal = useMemo(() => test.reading.reduce((a, p) => a + p.questions.length, 0), [test]);
+  const listeningTotal = useMemo(() => test.listening.reduce((a, s) => a + s.questions.length, 0), [test]);
+
+  // ---- Listening: trình duyệt đọc transcript theo section ----
+  const [playingSec, setPlayingSec] = useState<number | null>(null);
   const synthRef = useRef<typeof window.speechSynthesis | null>(null);
   useEffect(() => { synthRef.current = typeof window !== "undefined" ? window.speechSynthesis : null; return () => { synthRef.current?.cancel(); }; }, []);
-  function play() {
+  function play(idx: number, text: string) {
     const s = synthRef.current; if (!s) return;
     s.cancel();
-    const u = new SpeechSynthesisUtterance(L.transcript);
+    const u = new SpeechSynthesisUtterance(text);
     u.lang = "en-GB"; u.rate = 0.95;
-    u.onend = () => setSpeaking(false);
-    setSpeaking(true); s.speak(u);
+    u.onend = () => setPlayingSec(null);
+    setPlayingSec(idx); s.speak(u);
   }
-  function stop() { synthRef.current?.cancel(); setSpeaking(false); }
+  function stop() { synthRef.current?.cancel(); setPlayingSec(null); }
 
   function gradeReadingListening() {
     let rc = 0; const rWrong: Record<string, number> = {};
-    R.questions.forEach((q, i) => {
-      const ok = q.type === "TFNG" ? rAns[i] === q.answer : rAns[i] === q.answer;
+    readingBlocks.forEach((b) => b.items.forEach(({ q, gi }) => {
+      const ok = rAns[gi] === q.answer;
       if (ok) rc++; else rWrong[q.type] = (rWrong[q.type] || 0) + 1;
-    });
+    }));
     let lc = 0; const lWrong: Record<string, number> = {};
-    L.questions.forEach((q, i) => {
+    listeningBlocks.forEach((b) => b.items.forEach(({ q, gi }) => {
       let ok = false;
-      if (q.type === "GAP") ok = String(lAns[i] ?? "").trim().toLowerCase() === String(q.answer).trim().toLowerCase();
-      else ok = lAns[i] === q.answer;
+      if (q.type === "GAP") ok = String(lAns[gi] ?? "").trim().toLowerCase() === String(q.answer).trim().toLowerCase();
+      else ok = lAns[gi] === q.answer;
       if (ok) lc++; else lWrong[q.type] = (lWrong[q.type] || 0) + 1;
-    });
+    }));
     const rWeakType = Object.entries(rWrong).sort((a, b) => b[1] - a[1])[0]?.[0];
     const lWeakType = Object.entries(lWrong).sort((a, b) => b[1] - a[1])[0]?.[0];
     const rWeak = !rWeakType ? T("Không có điểm yếu rõ rệt — rất tốt!", "No clear weakness — great!")
@@ -78,80 +102,120 @@ export default function MockTest() {
       : lWeakType === "GAP" ? T("Nghe bắt từ/số & chính tả", "Catching words/numbers & spelling")
       : T("Bắt ý chính & bẫy sửa thông tin", "Main ideas & correction traps");
     return {
-      reading: { band: pctToBand(rc / R.questions.length), correct: rc, total: R.questions.length, weak: rWeak },
-      listening: { band: pctToBand(lc / L.questions.length), correct: lc, total: L.questions.length, weak: lWeak },
+      reading: { band: pctToBand(rc / readingTotal), correct: rc, total: readingTotal, weak: rWeak },
+      listening: { band: pctToBand(lc / listeningTotal), correct: lc, total: listeningTotal, weak: lWeak },
     };
   }
 
-  async function finish() {
-    setGrading(true);
-    const rl = gradeReadingListening();
-    let writing: { band: number | null; weak: string; note?: string } = { band: null, weak: "", note: T("Chưa cấu hình AI để chấm Writing.", "AI grading for Writing is not configured.") };
-    if (essay.trim().split(/\s+/).length >= 40) {
-      try {
-        const resp = await fetch("/api/grade", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt: W.prompt, essay }) });
-        if (resp.ok) {
-          const d = await resp.json();
-          const crit: [string, string][] = [["task_response", T("Task Response", "Task Response")], ["coherence", T("Mạch lạc", "Coherence")], ["lexical", T("Từ vựng", "Lexical")], ["grammar", T("Ngữ pháp", "Grammar")]];
-          let lowK = "", lowV = 99;
-          crit.forEach(([k]) => { const b = d[k]?.band; if (typeof b === "number" && b < lowV) { lowV = b; lowK = k; } });
-          const lowLabel = crit.find((c) => c[0] === lowK)?.[1] || "";
-          writing = { band: typeof d.overall === "number" ? d.overall : null, weak: lowLabel ? T(`Yếu nhất: ${lowLabel} (band ${lowV})`, `Weakest: ${lowLabel} (band ${lowV})`) : "" };
-        } else {
-          const e = await resp.json().catch(() => ({}));
-          writing = { band: null, weak: "", note: e.error || T("Không chấm được Writing.", "Could not grade Writing.") };
-        }
-      } catch {
-        writing = { band: null, weak: "", note: T("Lỗi kết nối khi chấm Writing.", "Connection error while grading Writing.") };
-      }
-    } else {
-      writing = { band: null, weak: "", note: T("Bài viết quá ngắn để chấm (cần ≥ 40 từ).", "Essay too short to grade (need ≥ 40 words).") };
+  async function gradeOne(taskDef: MockWritingTask, essay: string): Promise<WResult> {
+    if (essay.trim().split(/\s+/).filter(Boolean).length < (taskDef.task === 1 ? 30 : 40)) {
+      return { band: null, weak: "", note: T(`Bài quá ngắn để chấm (Task ${taskDef.task}).`, `Too short to grade (Task ${taskDef.task}).`) };
     }
-    setResult({ ...rl, writing });
-    setGrading(false);
-    stop();
-    setPhase("results");
+    try {
+      const resp = await fetch("/api/grade", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt: taskDef.prompt, essay, task: taskDef.task }),
+      });
+      if (!resp.ok) {
+        const e = await resp.json().catch(() => ({}));
+        return { band: null, weak: "", note: e.error || T("Không chấm được.", "Could not grade.") };
+      }
+      const d = await resp.json();
+      const taLabel = taskDef.task === 1 ? T("Task Achievement", "Task Achievement") : T("Task Response", "Task Response");
+      const crit: [string, string][] = [["task_response", taLabel], ["coherence", T("Mạch lạc", "Coherence")], ["lexical", T("Từ vựng", "Lexical")], ["grammar", T("Ngữ pháp", "Grammar")]];
+      let lowK = "", lowV = 99;
+      crit.forEach(([k]) => { const b = d[k]?.band; if (typeof b === "number" && b < lowV) { lowV = b; lowK = k; } });
+      const lowLabel = crit.find((c) => c[0] === lowK)?.[1] || "";
+      return { band: typeof d.overall === "number" ? d.overall : null, weak: lowLabel ? T(`Yếu nhất: ${lowLabel} (band ${lowV})`, `Weakest: ${lowLabel} (band ${lowV})`) : "" };
+    } catch {
+      return { band: null, weak: "", note: T("Lỗi kết nối khi chấm.", "Connection error while grading.") };
+    }
   }
 
-  // ---------- RENDER ----------
+  async function finish() {
+    stop();
+    setPhase("grading");
+    const rl = gradeReadingListening();
+    const [t1, t2] = await Promise.all([gradeOne(test.writing.task1, essay1), gradeOne(test.writing.task2, essay2)]);
+    // Writing band: Task 1 trọng số 1, Task 2 trọng số 2 (theo IELTS).
+    let wBand: number | null = null;
+    if (t1.band != null && t2.band != null) wBand = round2((t1.band + 2 * t2.band) / 3);
+    else if (t2.band != null) wBand = t2.band;
+    else if (t1.band != null) wBand = t1.band;
+    const wWeak = (t2.weak || t1.weak || "");
+    const wNote = wBand == null ? T("Chưa chấm được Writing (kiểm tra ANTHROPIC_API_KEY).", "Writing not graded (check ANTHROPIC_API_KEY).") : undefined;
+    const writing = { band: wBand, weak: wWeak, note: wNote, t1, t2 };
+
+    const bands = [rl.reading.band, rl.listening.band, wBand].filter((b): b is number => typeof b === "number");
+    const overall = bands.length ? round2(bands.reduce((a, b) => a + b, 0) / bands.length) : null;
+
+    setResult({ ...rl, writing, overall, testId: test.id });
+    setPhase("results");
+
+    // Lưu lịch sử
+    try {
+      const { where } = await saveMockAttempt({
+        test_id: test.id,
+        reading_band: rl.reading.band,
+        listening_band: rl.listening.band,
+        writing_band: wBand,
+        overall_band: overall,
+        reading_correct: rl.reading.correct,
+        reading_total: rl.reading.total,
+        listening_correct: rl.listening.correct,
+        listening_total: rl.listening.total,
+      });
+      setSaveMsg(where === "supabase"
+        ? T("Đã lưu vào hồ sơ của bạn.", "Saved to your profile.")
+        : T("Đã lưu trên thiết bị này (đăng nhập để lưu vào hồ sơ).", "Saved on this device (sign in to save to your profile)."));
+    } catch {
+      setSaveMsg(T("Không lưu được lịch sử.", "Could not save history."));
+    }
+  }
+
+  /* ---------------- RENDER ---------------- */
+
   if (phase === "intro") {
-    return (
-      <div className="card">
-        <h3>{T("Bài thi thử xếp band", "Placement mock test")}</h3>
-        <p style={{ fontSize: 14, color: "var(--ink-soft)", marginBottom: 12 }}>
-          {T("Hệ thống rút ngẫu nhiên một đề cho mỗi kỹ năng (Reading · Listening · Writing) từ ngân hàng đề gốc, tách riêng khỏi phần luyện tập. Cuối bài bạn nhận band ước tính từng kỹ năng và điểm yếu chính.",
-             "The system randomly draws one test per skill (Reading · Listening · Writing) from an original bank, separate from the practice sets. At the end you get an estimated band per skill plus the main weakness.")}
-        </p>
-        <div className="note">{T("Lưu ý: đây là ước tính nhanh để định vị trình độ, không thay thế kỳ thi chính thức. Listening dùng giọng đọc của trình duyệt — giáo viên có thể tự đọc transcript để sát thực tế hơn.",
-          "Note: this is a quick estimate to gauge level, not a substitute for the official exam. Listening uses the browser voice — a teacher can read the transcript aloud for greater realism.")}</div>
-        <button className="btn" style={{ marginTop: 14 }} onClick={() => setPhase("reading")}>{T("Bắt đầu — Reading", "Start — Reading")}</button>
-      </div>
-    );
+    return <Intro test={test} T={T} onStart={() => setPhase("reading")} />;
   }
 
   if (phase === "reading") {
+    let counter = 0;
     return (
       <div>
+        <Timer minutes={60} label="Reading · 60'" />
         <div className="card">
-          <span className="eyebrow">{T("Phần 1 / 3 · Reading", "Part 1 / 3 · Reading")}</span>
-          <h3>{R.title}</h3>
-          <div className="reading-passage">{R.passage.map((p, i) => <p key={i}>{p}</p>)}</div>
+          <span className="eyebrow">{T("Phần 1 / 4 · Reading", "Part 1 / 4 · Reading")}</span>
+          <h3>{T("Đọc 3 đoạn, trả lời", `Reading — 3 passages`)} · {readingTotal} {T("câu", "questions")}</h3>
+          <div className="note">{T("Làm hết 3 passage rồi bấm sang Listening. Cuộn xuống để đọc từng đoạn.", "Answer all 3 passages, then move on to Listening. Scroll for each passage.")}</div>
         </div>
-        <div className="card">
-          {R.questions.map((q, i) => (
-            <div key={i} style={{ marginBottom: 14 }}>
-              <div className="quiz-q" style={{ fontSize: 14 }}><span className="qix">{i + 1}.</span> {q.q}</div>
-              <div className="opts">
-                {(q.type === "TFNG" ? TFNG : q.options || []).map((opt, oi) => {
-                  const val: string | number = q.type === "TFNG" ? opt : oi;
-                  const sel = rAns[i] === val;
-                  return <button key={oi} className={"opt" + (sel ? " correct" : "")} onClick={() => setRAns((p) => ({ ...p, [i]: val }))}>{opt}</button>;
-                })}
-              </div>
+        {readingBlocks.map((b, bi) => (
+          <div key={bi}>
+            <div className="card">
+              <span className="eyebrow">{b.passage.title}</span>
+              <div className="reading-passage" style={{ marginTop: 8 }}>{b.passage.passage.map((p, i) => <p key={i} style={{ marginBottom: 10 }}>{p}</p>)}</div>
             </div>
-          ))}
-          <button className="btn" style={{ width: "100%", marginTop: 8 }} onClick={() => setPhase("listening")}>{T("Tiếp — Listening ›", "Next — Listening ›")}</button>
-        </div>
+            <div className="card">
+              {b.items.map(({ q, gi }) => {
+                counter = gi + 1;
+                return (
+                  <div key={gi} style={{ marginBottom: 14 }}>
+                    <div className="quiz-q" style={{ fontSize: 14 }}><span className="qix">{counter}.</span> {q.q}</div>
+                    <div className="opts">
+                      {(q.type === "TFNG" ? TFNG : q.options || []).map((opt, oi) => {
+                        const val: string | number = q.type === "TFNG" ? opt : oi;
+                        const sel = rAns[gi] === val;
+                        return <button key={oi} className={"opt" + (sel ? " correct" : "")} onClick={() => setRAns((p) => ({ ...p, [gi]: val }))}>{opt}</button>;
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        <button className="btn" style={{ width: "100%" }} onClick={() => { window.scrollTo(0, 0); setPhase("listening"); }}>{T("Tiếp — Listening ›", "Next — Listening ›")}</button>
       </div>
     );
   }
@@ -159,53 +223,64 @@ export default function MockTest() {
   if (phase === "listening") {
     return (
       <div>
+        <Timer minutes={30} label="Listening · ~30'" />
         <div className="card">
-          <span className="eyebrow">{T("Phần 2 / 3 · Listening", "Part 2 / 3 · Listening")}</span>
-          <h3>{L.title}</h3>
-          <p style={{ fontSize: 13.5, color: "var(--ink-soft)", marginBottom: 10 }}>{T("Bấm nghe (giọng trình duyệt). Cố gắng nghe rồi trả lời — hạn chế nghe lại nhiều lần để sát thực tế.", "Press play (browser voice). Try to listen once and answer — limit replays for realism.")}</p>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button className="btn sm" onClick={play} disabled={speaking}>{speaking ? T("Đang đọc…", "Playing…") : "▶ " + T("Nghe", "Play")}</button>
-            <button className="btn sm ghost" onClick={stop}>■ {T("Dừng", "Stop")}</button>
-          </div>
+          <span className="eyebrow">{T("Phần 2 / 4 · Listening", "Part 2 / 4 · Listening")}</span>
+          <h3>{T("Nghe 4 section", "Listening — 4 sections")} · {listeningTotal} {T("câu", "questions")}</h3>
+          <div className="note">{T("Mỗi section có nút nghe riêng (giọng trình duyệt). Cố nghe 1 lần rồi trả lời để sát thực tế.", "Each section has its own play button (browser voice). Try to listen once for realism.")}</div>
         </div>
-        <div className="card">
-          {L.questions.map((q, i) => (
-            <div key={i} style={{ marginBottom: 14 }}>
-              <div className="quiz-q" style={{ fontSize: 14 }}><span className="qix">{i + 1}.</span> {q.q}</div>
-              {q.type === "GAP" ? (
-                <input value={String(lAns[i] ?? "")} onChange={(e) => setLAns((p) => ({ ...p, [i]: e.target.value }))}
-                  placeholder={T("điền 1 từ", "one word")}
-                  style={{ padding: "8px 12px", borderRadius: 8, border: "1.5px solid var(--line)", fontSize: 14, fontFamily: "var(--body)" }} />
-              ) : (
-                <div className="opts">
-                  {(q.options || []).map((opt, oi) => {
-                    const sel = lAns[i] === oi;
-                    return <button key={oi} className={"opt" + (sel ? " correct" : "")} onClick={() => setLAns((p) => ({ ...p, [i]: oi }))}>{opt}</button>;
-                  })}
-                </div>
-              )}
+        {listeningBlocks.map((b, bi) => (
+          <div key={bi} className="card">
+            <span className="eyebrow">{b.section.title}</span>
+            <div style={{ display: "flex", gap: 10, margin: "10px 0 14px" }}>
+              <button className="btn sm" onClick={() => play(bi, b.section.transcript)} disabled={playingSec === bi}>{playingSec === bi ? T("Đang đọc…", "Playing…") : "▶ " + T("Nghe", "Play")}</button>
+              <button className="btn sm ghost" onClick={stop}>■ {T("Dừng", "Stop")}</button>
             </div>
-          ))}
-          <button className="btn" style={{ width: "100%", marginTop: 8 }} onClick={() => { stop(); setPhase("writing"); }}>{T("Tiếp — Writing ›", "Next — Writing ›")}</button>
-        </div>
+            {b.items.map(({ q, gi }) => (
+              <div key={gi} style={{ marginBottom: 14 }}>
+                <div className="quiz-q" style={{ fontSize: 14 }}><span className="qix">{gi + 1}.</span> {q.q}</div>
+                {q.type === "GAP" ? (
+                  <input value={String(lAns[gi] ?? "")} onChange={(e) => setLAns((p) => ({ ...p, [gi]: e.target.value }))}
+                    placeholder={T("điền từ/số", "word/number")}
+                    style={{ padding: "8px 12px", borderRadius: 8, border: "1.5px solid var(--line)", fontSize: 14, fontFamily: "var(--body)" }} />
+                ) : (
+                  <div className="opts">
+                    {(q.options || []).map((opt, oi) => {
+                      const sel = lAns[gi] === oi;
+                      return <button key={oi} className={"opt" + (sel ? " correct" : "")} onClick={() => setLAns((p) => ({ ...p, [gi]: oi }))}>{opt}</button>;
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+        <button className="btn" style={{ width: "100%" }} onClick={() => { stop(); window.scrollTo(0, 0); setPhase("writing1"); }}>{T("Tiếp — Writing Task 1 ›", "Next — Writing Task 1 ›")}</button>
       </div>
     );
   }
 
-  if (phase === "writing") {
-    const words = essay.trim() ? essay.trim().split(/\s+/).length : 0;
+  if (phase === "writing1") {
+    return <WritingPhase
+      T={T} taskDef={test.writing.task1} value={essay1} onChange={setEssay1}
+      part={T("Phần 3 / 4 · Writing Task 1", "Part 3 / 4 · Writing Task 1")} minutes={20}
+      onNext={() => { window.scrollTo(0, 0); setPhase("writing2"); }}
+      nextLabel={T("Tiếp — Writing Task 2 ›", "Next — Writing Task 2 ›")} />;
+  }
+
+  if (phase === "writing2") {
+    return <WritingPhase
+      T={T} taskDef={test.writing.task2} value={essay2} onChange={setEssay2}
+      part={T("Phần 4 / 4 · Writing Task 2", "Part 4 / 4 · Writing Task 2")} minutes={40}
+      onNext={finish}
+      nextLabel={T("Nộp bài & xem band", "Submit & see band")} />;
+  }
+
+  if (phase === "grading") {
     return (
       <div className="card">
-        <span className="eyebrow">{T("Phần 3 / 3 · Writing Task 2", "Part 3 / 3 · Writing Task 2")}</span>
-        <h3 style={{ fontSize: 17 }}>{W.type}</h3>
-        <p style={{ fontStyle: "italic", marginBottom: 12 }}>{W.prompt}</p>
-        <textarea value={essay} onChange={(e) => setEssay(e.target.value)} rows={16}
-          placeholder={T("Viết bài (~250 từ)…", "Write your essay (~250 words)…")}
-          style={{ width: "100%", padding: 16, borderRadius: 10, border: "1.5px solid var(--line)", fontSize: 15, fontFamily: "var(--body)", lineHeight: 1.7, resize: "vertical", minHeight: 360 }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, flexWrap: "wrap", gap: 10 }}>
-          <span className="fc-count">{words} {T("từ", "words")}</span>
-          <button className="btn" onClick={finish} disabled={grading}>{grading ? T("Đang chấm…", "Grading…") : T("Nộp bài & xem band", "Submit & see band")}</button>
-        </div>
+        <h3>{T("Đang chấm bài…", "Grading…")}</h3>
+        <div className="note">{T("Reading & Listening chấm tức thì; Writing Task 1 + Task 2 do AI chấm — chờ chút.", "Reading & Listening are instant; Writing Task 1 + Task 2 are graded by AI — please wait.")}</div>
       </div>
     );
   }
@@ -217,25 +292,113 @@ export default function MockTest() {
       <div className="lbl">{name}</div>
       <div className="big">{band == null ? "—" : band.toFixed(1)}</div>
       {sub && <div className="sub">{sub}</div>}
-      <div style={{ fontSize: 12.5, color: "rgba(255,255,255,.82)", marginTop: 6 }}><b>{T("Điểm yếu", "Weakness")}:</b> {weak}</div>
+      {weak && <div style={{ fontSize: 12.5, color: "rgba(255,255,255,.82)", marginTop: 6 }}><b>{T("Điểm yếu", "Weakness")}:</b> {weak}</div>}
     </div>
   );
-  const bands = [r.reading.band, r.listening.band, r.writing.band].filter((b): b is number => typeof b === "number");
-  const overall = bands.length ? Math.round((bands.reduce((a, b) => a + b, 0) / bands.length) * 2) / 2 : null;
 
   return (
     <div>
       <div className="card">
-        <span className="eyebrow">{T("Kết quả ước tính", "Estimated result")}</span>
-        <h3>{T("Band tổng (trung bình)", "Overall band (average)")}: <span style={{ color: "var(--amber-deep)" }}>{overall == null ? "—" : overall.toFixed(1)}</span></h3>
+        <span className="eyebrow">{T("Kết quả ước tính", "Estimated result")} · {test.label[lang]}</span>
+        <h3>{T("Band tổng (trung bình)", "Overall band (average)")}: <span style={{ color: "var(--amber-deep)" }}>{r.overall == null ? "—" : r.overall.toFixed(1)}</span></h3>
         <div className="grid g3" style={{ marginTop: 14 }}>
           <Skill name="Reading" band={r.reading.band} sub={`${r.reading.correct}/${r.reading.total} ${T("câu đúng", "correct")}`} weak={r.reading.weak} />
           <Skill name="Listening" band={r.listening.band} sub={`${r.listening.correct}/${r.listening.total} ${T("câu đúng", "correct")}`} weak={r.listening.weak} />
-          <Skill name="Writing" band={r.writing.band} sub={r.writing.note} weak={r.writing.weak || (r.writing.note ? "" : "—")} />
+          <Skill name="Writing" band={r.writing.band} sub={r.writing.note || (r.writing.t1.band != null && r.writing.t2.band != null ? `T1 ${r.writing.t1.band} · T2 ${r.writing.t2.band}` : undefined)} weak={r.writing.weak} />
         </div>
-        <div className="note" style={{ marginTop: 14 }}>{T("Đây là ước tính nhanh. Reading/Listening chấm theo số câu đúng; Writing do AI chấm theo 4 tiêu chí. Dùng để định vị trình độ ban đầu trước khi lên lộ trình học.",
-          "This is a quick estimate. Reading/Listening are scored by correct answers; Writing is graded by AI on the four criteria. Use it to gauge a starting level before planning study.")}</div>
+        {saveMsg && <div className="note" style={{ marginTop: 14 }}>{saveMsg}</div>}
+        <div className="note" style={{ marginTop: 10 }}>{T("Đây là ước tính. Reading/Listening chấm theo số câu đúng (40 câu mỗi kỹ năng); Writing = trung bình có trọng số Task 1 (×1) và Task 2 (×2) do AI chấm.",
+          "This is an estimate. Reading/Listening are scored by correct answers (40 each); Writing = weighted average of Task 1 (×1) and Task 2 (×2), graded by AI.")}</div>
         <button className="btn ghost sm" style={{ marginTop: 14 }} onClick={() => window.location.reload()}>{T("Làm đề khác", "Take another test")}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Intro + lịch sử ---------- */
+function Intro({ test, T, onStart }: { test: MT; T: (vi: string, en: string) => string; onStart: () => void }) {
+  const { lang } = useLang();
+  const [attempts, setAttempts] = useState<MockAttempt[]>([]);
+  const [signedIn, setSignedIn] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => { (async () => { const { attempts, signedIn } = await loadMockAttempts(); setAttempts(attempts); setSignedIn(signedIn); setLoaded(true); })(); }, []);
+
+  return (
+    <div>
+      <div className="card">
+        <h3>{T("Bài thi thử đầy đủ", "Full mock test")} · {test.label[lang]}</h3>
+        <p style={{ fontSize: 14, color: "var(--ink-soft)", marginBottom: 12 }}>
+          {T("Mô phỏng một bài thi thật: Reading 40 câu (3 passage) · Listening 40 câu (4 section) · Writing Task 1 + Task 2. Hệ thống chọn một đề khác lần trước. Cuối bài có band từng kỹ năng + band tổng, và được lưu vào hồ sơ.",
+             "A full exam simulation: Reading 40 questions (3 passages) · Listening 40 questions (4 sections) · Writing Task 1 + Task 2. The system picks a different test from last time. At the end you get a band per skill + overall, saved to your profile.")}
+        </p>
+        <div className="note">{T("Listening dùng giọng đọc của trình duyệt để ước lượng — không thay thế kỳ thi chính thức. Cấu hình ANTHROPIC_API_KEY để chấm Writing.",
+          "Listening uses the browser voice for estimation — not a substitute for the official exam. Configure ANTHROPIC_API_KEY to grade Writing.")}</div>
+        <button className="btn" style={{ marginTop: 14 }} onClick={onStart}>{T("Bắt đầu — Reading", "Start — Reading")}</button>
+      </div>
+
+      {loaded && attempts.length > 0 && (
+        <div className="card">
+          <span className="eyebrow">{T("Lịch sử thi thử", "Your attempts")}{signedIn ? "" : T(" (trên thiết bị này)", " (this device)")}</span>
+          <table className="tbl" style={{ width: "100%", marginTop: 8 }}>
+            <tbody>
+              <tr style={{ fontFamily: "var(--mono)", fontSize: 11, textTransform: "uppercase", letterSpacing: ".08em", color: "var(--amber-deep)" }}>
+                <td>{T("Ngày", "Date")}</td><td>{T("Đề", "Test")}</td><td>R</td><td>L</td><td>W</td><td>{T("Tổng", "Overall")}</td>
+              </tr>
+              {attempts.slice(0, 10).map((a, i) => (
+                <tr key={a.id || i}>
+                  <td style={{ whiteSpace: "nowrap" }}>{new Date(a.created_at).toLocaleDateString()}</td>
+                  <td>{a.test_id}</td>
+                  <td>{a.reading_band ?? "—"}</td>
+                  <td>{a.listening_band ?? "—"}</td>
+                  <td>{a.writing_band ?? "—"}</td>
+                  <td><b>{a.overall_band ?? "—"}</b></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Một phần Writing (Task 1 hoặc Task 2) ---------- */
+function WritingPhase({ T, taskDef, value, onChange, part, minutes, onNext, nextLabel }: {
+  T: (vi: string, en: string) => string;
+  taskDef: MockWritingTask; value: string; onChange: (s: string) => void;
+  part: string; minutes: number; onNext: () => void; nextLabel: string;
+}) {
+  const words = value.trim() ? value.trim().split(/\s+/).length : 0;
+  const short = words < taskDef.minWords;
+  return (
+    <div>
+      <Timer minutes={minutes} label={`Writing Task ${taskDef.task} · ${minutes}'`} />
+      <div className="card">
+        <span className="eyebrow">{part}</span>
+        <h3 style={{ fontSize: 17 }}>{taskDef.type}</h3>
+        <p style={{ fontStyle: "italic", marginBottom: 12 }}>{taskDef.prompt}</p>
+        {taskDef.table && (
+          <div style={{ overflowX: "auto", marginBottom: 14 }}>
+            <div className="anno" style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--amber-deep)", marginBottom: 4 }}>{taskDef.table.caption}</div>
+            <table className="tbl" style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>{taskDef.table.head.map((h, i) => <td key={i} style={{ fontWeight: 700 }}>{h}</td>)}</tr>
+              </thead>
+              <tbody>
+                {taskDef.table.rows.map((row, ri) => (
+                  <tr key={ri}>{row.map((c, ci) => <td key={ci}>{c}</td>)}</tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={taskDef.task === 1 ? 11 : 16}
+          placeholder={T(`Viết bài (≥ ${taskDef.minWords} từ)…`, `Write your answer (≥ ${taskDef.minWords} words)…`)}
+          style={{ width: "100%", padding: 16, borderRadius: 10, border: "1.5px solid var(--line)", fontSize: 15, fontFamily: "var(--body)", lineHeight: 1.7, resize: "vertical", minHeight: taskDef.task === 1 ? 240 : 360 }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, flexWrap: "wrap", gap: 10 }}>
+          <span className="fc-count" style={{ color: short ? "var(--maroon)" : "var(--ink-soft)" }}>{words} {T("từ", "words")} {short ? T(`(tối thiểu ${taskDef.minWords})`, `(min ${taskDef.minWords})`) : "✓"}</span>
+          <button className="btn" onClick={onNext}>{nextLabel}</button>
+        </div>
       </div>
     </div>
   );
