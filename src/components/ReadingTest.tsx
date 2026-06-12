@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { ReadingTest } from "@/data/types";
 import { useProgress } from "@/lib/progress";
+import { useLang, pick } from "@/lib/i18n";
 
 const TFNG_OPTS = ["True", "False", "Not Given"] as const;
 
 export default function ReadingTestView({ test }: { test: ReadingTest }) {
   const { update } = useProgress();
+  const { lang } = useLang();
   const [tf, setTf] = useState<Record<number, string>>({});
   const [mc, setMc] = useState<Record<number, number>>({});
   const [graded, setGraded] = useState(false);
@@ -39,12 +41,12 @@ export default function ReadingTestView({ test }: { test: ReadingTest }) {
             </p>
           ))}
         </div>
-        <div className="note">Cuộn để đọc hết đoạn. Trong phòng thi, đọc câu hỏi trước rồi quét đoạn — đừng đọc kỹ từng chữ ngay.</div>
+        <div className="note">{pick(lang, { vi: "Cuộn để đọc hết đoạn. Trong phòng thi, đọc câu hỏi trước rồi quét đoạn — đừng đọc kỹ từng chữ ngay.", en: "Scroll to read the whole passage. In the exam, read the questions first then scan, rather than reading every word." })}</div>
       </div>
 
       <div>
         <div className="card" style={{ marginBottom: 14 }}>
-          <h3 style={{ fontSize: 18 }}>Phần 1 — True / False / Not Given</h3>
+          <h3 style={{ fontSize: 18 }}>{pick(lang, { vi: "Phần 1 — True / False / Not Given", en: "Part 1 — True / False / Not Given" })}</h3>
           {test.tfng.map((q, i) => (
             <div key={i} style={{ marginBottom: 14 }}>
               <div className="quiz-q" style={{ fontSize: 14 }}>
@@ -67,17 +69,17 @@ export default function ReadingTestView({ test }: { test: ReadingTest }) {
                   );
                 })}
               </div>
-              {graded && <div className="explain"><b>Vì sao:</b> {q.explain}</div>}
+              {graded && <div className="explain"><b>{pick(lang, { vi: "Vì sao:", en: "Why:" })}</b> {pick(lang, q.explain)}</div>}
             </div>
           ))}
         </div>
 
         <div className="card">
-          <h3 style={{ fontSize: 18 }}>Phần 2 — Trắc nghiệm</h3>
+          <h3 style={{ fontSize: 18 }}>{pick(lang, { vi: "Phần 2 — Trắc nghiệm", en: "Part 2 — Multiple choice" })}</h3>
           {test.mcq.map((q, i) => (
             <div key={i} style={{ marginBottom: 14 }}>
               <div className="quiz-q" style={{ fontSize: 14 }}>
-                <span className="qix">{i + test.tfng.length + 1}.</span> {q.q}
+                <span className="qix">{i + test.tfng.length + 1}.</span> {pick(lang, q.q)}
               </div>
               <div className="opts">
                 {q.options.map((opt, oi) => {
@@ -91,29 +93,29 @@ export default function ReadingTestView({ test }: { test: ReadingTest }) {
                   }
                   return (
                     <button key={oi} className={cls} onClick={() => !graded && setMc((p) => ({ ...p, [i]: oi }))}>
-                      {opt}
+                      {pick(lang, opt)}
                     </button>
                   );
                 })}
               </div>
-              {graded && <div className="explain"><b>Vì sao:</b> {q.explain}</div>}
+              {graded && <div className="explain"><b>{pick(lang, { vi: "Vì sao:", en: "Why:" })}</b> {pick(lang, q.explain)}</div>}
             </div>
           ))}
         </div>
 
         {!graded ? (
           <button className="btn" style={{ width: "100%", marginTop: 14 }} onClick={grade}>
-            Chấm điểm Reading
+            {pick(lang, { vi: "Chấm điểm Reading", en: "Grade Reading" })}
           </button>
         ) : (
           <div className="score-banner">
             <div className="scr">{score}/{total}</div>
             <div>
               {score === total
-                ? "Hoàn hảo! Tốc độ quét đoạn của bạn rất tốt."
+                ? pick(lang, { vi: "Hoàn hảo! Tốc độ quét đoạn của bạn rất tốt.", en: "Perfect! Your scanning speed is excellent." })
                 : score >= total * 0.7
-                ? "Khá tốt — đọc lại phần giải thích các câu sai."
-                : "Luyện thêm: đọc câu hỏi trước, rồi định vị từ khóa trong đoạn."}
+                ? pick(lang, { vi: "Khá tốt — đọc lại phần giải thích các câu sai.", en: "Good. Review the explanations for the ones you missed." })
+                : pick(lang, { vi: "Luyện thêm: đọc câu hỏi trước, rồi định vị từ khóa trong đoạn.", en: "Practise more: read questions first, then locate keywords in the passage." })}
             </div>
           </div>
         )}

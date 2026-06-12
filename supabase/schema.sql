@@ -66,3 +66,39 @@ create policy "auth delete content"
 --   create policy "admin insert" on public.content for insert to authenticated
 --     with check ( (auth.jwt() ->> 'email') = 'ban@email.com' );
 -- (làm tương tự cho update/delete)
+
+-- ============================================================
+-- BẢNG MOCK_ATTEMPTS — lưu lịch sử mỗi lần thi thử full-length.
+-- Append-only: mỗi lần thi là 1 dòng mới (khác user_progress dạng upsert).
+-- ============================================================
+create table if not exists public.mock_attempts (
+  id                uuid primary key default gen_random_uuid(),
+  user_id           uuid not null references auth.users(id) on delete cascade,
+  test_id           text not null,                 -- 'A' | 'B' | ...
+  reading_band      numeric,
+  listening_band    numeric,
+  writing_band      numeric,
+  overall_band      numeric,
+  reading_correct   int,
+  reading_total     int,
+  listening_correct int,
+  listening_total   int,
+  created_at        timestamptz not null default now()
+);
+
+alter table public.mock_attempts enable row level security;
+
+create policy "read own attempts"
+  on public.mock_attempts for select
+  using (auth.uid() = user_id);
+
+create policy "insert own attempts"
+  on public.mock_attempts for insert
+  with check (auth.uid() = user_id);
+
+create policy "delete own attempts"
+  on public.mock_attempts for delete
+  using (auth.uid() = user_id);
+
+create index if not exists mock_attempts_user_idx
+  on public.mock_attempts (user_id, created_at desc);
