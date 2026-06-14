@@ -4,11 +4,14 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { MOCK_TESTS, type MockTest as MT, type MockWritingTask, type MockListeningSection, type MockReadingPassage } from "@/data/mocktests";
 import { useLang, pick } from "@/lib/i18n";
 import { saveMockAttempt, loadMockAttempts, getLastTestId, type MockAttempt } from "@/lib/mockHistory";
+import { ensureProfile } from "@/lib/profile";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import Timer from "@/components/Timer";
 
 type Phase = "intro" | "reading" | "listening" | "writing1" | "writing2" | "grading" | "results";
 const TFNG = ["True", "False", "Not Given"];
+const YNG = ["Yes", "No", "Not Given"];
+const selStyle: React.CSSProperties = { padding: "9px 12px", borderRadius: 9, border: "1.5px solid var(--line)", fontSize: 14, fontFamily: "var(--body)", background: "#fbf6ee", minWidth: 220 };
 const round2 = (n: number) => Math.round(n * 2) / 2;
 
 // % đúng -> band ước tính (xấp xỉ thang IELTS Academic, 40 câu)
@@ -40,9 +43,9 @@ export default function MockTest() {
   const [phase, setPhase] = useState<Phase>("intro");
   // chọn 1 đề khác lần trước, cố định trong suốt phiên thi
   const [test, setTest] = useState<MT>(() => MOCK_TESTS[0]);
-  // Chọn 1 đề khác lần trước, rồi GỘP section do AI sinh (nếu có trong Supabase):
-  // - mocklistening: section listening kèm youtubeId (video thật) -> thay giọng máy
-  // - mockreading: passage reading gốc do AI sinh
+  // Chọn 1 đề khác lần trước, rồi GỘP nội dung do AI sinh (nếu có trong Supabase):
+  // - mocklistening_test: 1 video = full 4 section/40 câu -> dùng nguyên (random video khác nhau)
+  // - mockreading_part: passage gắn part 1/2/3 -> bốc 1 passage mỗi part (nguồn khác nhau), thiếu bù đề file
   useEffect(() => {
     let active = true;
     (async () => {
@@ -53,20 +56,30 @@ export default function MockTest() {
         const { data } = await sb
           .from("content")
           .select("type, payload")
-          .in("type", ["mocklistening", "mockreading"])
+          .in("type", ["mocklistening_test", "mockreading_part"])
           .eq("published", true)
           .order("created_at", { ascending: false });
-        const genL = (data || []).filter((r: { type: string }) => r.type === "mocklistening").map((r: { payload: MockListeningSection }) => r.payload);
-        const genR = (data || []).filter((r: { type: string }) => r.type === "mockreading").map((r: { payload: MockReadingPassage }) => r.payload);
-        // top-up: dùng hết phần do AI sinh, thiếu thì lấy đề file bù cho đủ (R=3, L=4)
-        const topUpL = [...genL.slice(0, 4)];
-        for (let i = 0; topUpL.length < 4 && i < base.listening.length; i++) topUpL.push(base.listening[i]);
-        const topUpR = [...genR.slice(0, 3)];
-        for (let i = 0; topUpR.length < 3 && i < base.reading.length; i++) topUpR.push(base.reading[i]);
+        const rows = data || [];
+        // LISTENING: mỗi row là 1 bài đầy đủ {sections:[4]}; bốc ngẫu nhiên 1 bài.
+        const lTests = rows.filter((r: { type: string }) => r.type === "mocklistening_test")
+          .map((r: { payload: { sections: MockListeningSection[] } }) => r.payload?.sections).filter((s): s is MockListeningSection[] => Array.isArray(s) && s.length > 0);
+        const listening = lTests.length ? lTests[Math.floor(Math.random() * lTests.length)] : base.listening;
+
+        // READING: gom theo part, bốc 1 passage mỗi part; thiếu thì lấy đề file.
+        const rParts = rows.filter((r: { type: string }) => r.type === "mockreading_part").map((r: { payload: MockReadingPassage }) => r.payload);
+        const byPart = (p: number) => rParts.filter((x) => x?.part === p);
+        const pickOne = (arr: MockReadingPassage[], fallback?: MockReadingPassage) =>
+          arr.length ? arr[Math.floor(Math.random() * arr.length)] : fallback;
+        const reading = [
+          pickOne(byPart(1), base.reading[0]),
+          pickOne(byPart(2), base.reading[1]),
+          pickOne(byPart(3), base.reading[2]),
+        ].filter(Boolean) as MockReadingPassage[];
+
         const merged: MT = {
           ...base,
-          listening: genL.length ? topUpL : base.listening,
-          reading: genR.length ? topUpR : base.reading,
+          listening: listening.length ? listening : base.listening,
+          reading: reading.length ? reading : base.reading,
         };
         if (active) setTest(merged);
       } catch {
@@ -201,6 +214,7 @@ export default function MockTest() {
         listening_correct: rl.listening.correct,
         listening_total: rl.listening.total,
       });
+      ensureProfile().catch(() => {});
       setSaveMsg(where === "supabase"
         ? T("Đã lưu vào hồ sơ của bạn.", "Saved to your profile.")
         : T("Đã lưu trên thiết bị này (đăng nhập để lưu vào hồ sơ).", "Saved on this device (sign in to save to your profile)."));
@@ -225,11 +239,13 @@ export default function MockTest() {
           <h3>{T("Đọc 3 đoạn, trả lời", `Reading — 3 passages`)} · {readingTotal} {T("câu", "questions")}</h3>
           <div className="note">{T("Làm hết 3 passage rồi bấm sang Listening. Cuộn xuống để đọc từng đoạn.", "Answer all 3 passages, then move on to Listening. Scroll for each passage.")}</div>
         </div>
-        {readingBlocks.map((b, bi) => (
+        {readingBlocks.map((b, bi) => {
+          const hasMH = b.passage.questions.some((q) => q.type === "MH");
+          return (
           <div key={bi}>
             <div className="card">
               <span className="eyebrow">{b.passage.title}</span>
-              <div className="reading-passage" style={{ marginTop: 8 }}>{b.passage.passage.map((p, i) => <p key={i} style={{ marginBottom: 10 }}>{p}</p>)}</div>
+              <div className="reading-passage" style={{ marginTop: 8 }}>{b.passage.passage.map((p, i) => <p key={i} style={{ marginBottom: 10 }}>{hasMH && <b style={{ color: "var(--amber-deep)" }}>{i + 1}. </b>}{p}</p>)}</div>
             </div>
             <div className="card">
               {b.items.map(({ q, gi }) => {
@@ -237,19 +253,33 @@ export default function MockTest() {
                 return (
                   <div key={gi} style={{ marginBottom: 14 }}>
                     <div className="quiz-q" style={{ fontSize: 14 }}><span className="qix">{counter}.</span> {q.q}</div>
-                    <div className="opts">
-                      {(q.type === "TFNG" ? TFNG : q.options || []).map((opt, oi) => {
-                        const val: string | number = q.type === "TFNG" ? opt : oi;
-                        const sel = rAns[gi] === val;
-                        return <button key={oi} className={"opt" + (sel ? " correct" : "")} onClick={() => setRAns((p) => ({ ...p, [gi]: val }))}>{opt}</button>;
-                      })}
-                    </div>
+                    {q.type === "TFNG" || q.type === "YNG" ? (
+                      <div className="opts">
+                        {(q.type === "TFNG" ? TFNG : YNG).map((opt) => {
+                          const sel = rAns[gi] === opt;
+                          return <button key={opt} className={"opt" + (sel ? " correct" : "")} onClick={() => setRAns((p) => ({ ...p, [gi]: opt }))}>{opt}</button>;
+                        })}
+                      </div>
+                    ) : q.type === "MH" ? (
+                      <select value={rAns[gi] === undefined ? "" : String(rAns[gi])} onChange={(e) => setRAns((p) => ({ ...p, [gi]: e.target.value === "" ? "" : Number(e.target.value) }))} style={selStyle}>
+                        <option value="">{T("— chọn heading —", "— choose heading —")}</option>
+                        {(q.options || []).map((opt, oi) => <option key={oi} value={oi}>{opt}</option>)}
+                      </select>
+                    ) : (
+                      <div className="opts">
+                        {(q.options || []).map((opt, oi) => {
+                          const sel = rAns[gi] === oi;
+                          return <button key={oi} className={"opt" + (sel ? " correct" : "")} onClick={() => setRAns((p) => ({ ...p, [gi]: oi }))}>{opt}</button>;
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
         <button className="btn" style={{ width: "100%" }} onClick={() => { window.scrollTo(0, 0); setPhase("listening"); }}>{T("Tiếp — Listening ›", "Next — Listening ›")}</button>
       </div>
     );
@@ -293,6 +323,11 @@ export default function MockTest() {
                   <input value={String(lAns[gi] ?? "")} onChange={(e) => setLAns((p) => ({ ...p, [gi]: e.target.value }))}
                     placeholder={T("điền từ/số", "word/number")}
                     style={{ padding: "8px 12px", borderRadius: 8, border: "1.5px solid var(--line)", fontSize: 14, fontFamily: "var(--body)" }} />
+                ) : q.type === "MATCH" ? (
+                  <select value={lAns[gi] === undefined ? "" : String(lAns[gi])} onChange={(e) => setLAns((p) => ({ ...p, [gi]: e.target.value === "" ? "" : Number(e.target.value) }))} style={selStyle}>
+                    <option value="">{T("— chọn —", "— choose —")}</option>
+                    {(q.options || []).map((opt, oi) => <option key={oi} value={oi}>{opt}</option>)}
+                  </select>
                 ) : (
                   <div className="opts">
                     {(q.options || []).map((opt, oi) => {

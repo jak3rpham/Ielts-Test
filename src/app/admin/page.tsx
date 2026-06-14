@@ -320,18 +320,23 @@ function JsonImporter({ type, label, template, onSave }: { type: string; label: 
 
 /* ---------- AI generator: YouTube/transcript -> câu hỏi gốc -> mock ---------- */
 function AiGenerator({ onSave }: { onSave: (id: string, type: string, payload: unknown) => void }) {
-  const [kind, setKind] = useState<"listening" | "reading">("listening");
-  const [title, setTitle] = useState("");
+  const [skill, setSkill] = useState<"listening" | "reading">("listening");
+  // chung
+  const [band, setBand] = useState("6.5–7.5");
+  const [busy, setBusy] = useState<"" | "fetch" | "gen">("");
+  const [err, setErr] = useState<string | null>(null);
+  // listening (1 video = full 40 câu / 4 section)
   const [ytUrl, setYtUrl] = useState("");
   const [youtubeId, setYoutubeId] = useState("");
   const [source, setSource] = useState("");
-  const [transcript, setTranscript] = useState(""); // listening: input để sinh đề (không hiển thị lại)
-  const [passage, setPassage] = useState(""); // reading: nội dung hiển thị (phải gốc/public-domain)
-  const [band, setBand] = useState("6.5–7.5");
-  const [count, setCount] = useState(10);
-  const [genJson, setGenJson] = useState(""); // questions JSON để QA/sửa
-  const [busy, setBusy] = useState<"" | "fetch" | "gen">("");
-  const [err, setErr] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState("");
+  const [lTitle, setLTitle] = useState("");
+  const [secJson, setSecJson] = useState(""); // sections JSON để QA
+  // reading (1 passage = 1 part)
+  const [part, setPart] = useState<1 | 2 | 3>(1);
+  const [passage, setPassage] = useState("");
+  const [rTitle, setRTitle] = useState("");
+  const [qJson, setQJson] = useState(""); // questions JSON để QA
 
   async function fetchTranscript() {
     setErr(null); setBusy("fetch");
@@ -346,85 +351,114 @@ function AiGenerator({ onSave }: { onSave: (id: string, type: string, payload: u
   }
 
   async function generate() {
-    setErr(null); setBusy("gen"); setGenJson("");
-    const src = kind === "listening" ? transcript : passage;
+    setErr(null); setBusy("gen"); setSecJson(""); setQJson("");
+    const src = skill === "listening" ? transcript : passage;
     try {
-      const r = await fetch("/api/generate-questions", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ source: src, kind, count, band }) });
+      const r = await fetch("/api/generate-questions", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify(skill === "listening" ? { source: src, kind: "listening", band } : { source: src, kind: "reading", part, band }),
+      });
       const d = await r.json();
       if (!r.ok) { setErr(d.error || "Không sinh được đề."); setBusy(""); return; }
-      if (d.title && !title) setTitle(d.title);
-      setGenJson(JSON.stringify(d.questions ?? d, null, 2));
+      if (skill === "listening") {
+        setSecJson(JSON.stringify(d.sections ?? d, null, 2));
+        if (d.sections?.[0]?.title && !lTitle) setLTitle("Listening — " + (source || "video"));
+      } else {
+        setQJson(JSON.stringify(d.questions ?? d, null, 2));
+        if (d.title && !rTitle) setRTitle(d.title);
+      }
     } catch (e) { setErr(String(e)); }
     setBusy("");
   }
 
-  function save() {
+  function saveListening() {
+    setErr(null);
+    let sections;
+    try { sections = JSON.parse(secJson); } catch (e) { setErr("JSON sections sai cú pháp: " + String(e)); return; }
+    if (!Array.isArray(sections) || sections.length === 0) { setErr("Chưa có sections để lưu."); return; }
+    if (!youtubeId.trim()) { setErr("Thiếu YouTube ID (embed video)."); return; }
+    const total = sections.reduce((a: number, s: { questions?: unknown[] }) => a + (s.questions?.length || 0), 0);
+    if (total !== 40) { if (!confirm(`Đang có ${total} câu (chuẩn là 40). Vẫn lưu?`)) return; }
+    // gắn youtubeId vào section đầu để mock embed; các section dùng chung video
+    const withVid = sections.map((s: object, i: number) => ({ ...s, youtubeId: i === 0 ? youtubeId.trim() : undefined, source: source.trim() }));
+    const id = slugId("mocklistening", lTitle || youtubeId);
+    onSave(id, "mocklistening_test", { youtubeId: youtubeId.trim(), source: source.trim(), title: lTitle.trim() || "Listening test", sections: withVid });
+  }
+
+  function saveReading() {
     setErr(null);
     let questions;
-    try { questions = JSON.parse(genJson); } catch (e) { setErr("JSON câu hỏi sai cú pháp: " + String(e)); return; }
+    try { questions = JSON.parse(qJson); } catch (e) { setErr("JSON câu hỏi sai cú pháp: " + String(e)); return; }
     if (!Array.isArray(questions) || questions.length === 0) { setErr("Chưa có câu hỏi để lưu."); return; }
-    if (!title.trim()) { setErr("Đặt tiêu đề section."); return; }
-    const id = slugId(kind === "listening" ? "mocklistening" : "mockreading", title);
-    if (kind === "listening") {
-      onSave(id, "mocklistening", { title: title.trim(), transcript, questions, youtubeId: youtubeId.trim(), source: source.trim() });
-    } else {
-      const paras = passage.split(/\n\s*\n+/).map((p) => p.trim()).filter(Boolean);
-      onSave(id, "mockreading", { title: title.trim(), passage: paras, questions });
-    }
+    if (!rTitle.trim()) { setErr("Đặt tiêu đề passage."); return; }
+    const paras = passage.split(/\n\s*\n+/).map((p) => p.trim()).filter(Boolean);
+    if (paras.length === 0) { setErr("Passage trống."); return; }
+    const id = slugId("mockreading", rTitle);
+    onSave(id, "mockreading_part", { title: rTitle.trim(), passage: paras, questions, part });
   }
 
   return (
     <div className="card">
       <h3>✨ Tạo đề cho Mock bằng AI</h3>
-      <p style={{ fontSize: 13.5, color: "var(--ink-soft)", marginBottom: 12 }}>
-        Listening: dán link YouTube → lấy transcript → sinh câu hỏi GỐC (có bẫy kiểu IELTS) → <b>QA/sửa</b> → lưu. Video được embed vào mock (giọng thật, không phải giọng máy). Đủ 4 section thì mock dùng phần Listening do bạn tạo.
-      </p>
       <div className="note" style={{ marginBottom: 14 }}>
-        ⚠️ Bản quyền: KHÔNG chép lại bộ câu hỏi có sẵn trong video — tool chỉ dùng transcript làm input để sinh câu mới. Với Reading, chỉ dán nội dung BẠN tự viết hoặc public-domain (passage sẽ hiển thị nguyên văn cho người học). Câu hỏi AI sinh PHẢI được kiểm tra tay trước khi lưu (đáp án/distractor có thể sai).
+        ⚠️ Câu hỏi AI sinh PHẢI kiểm tra tay trước khi lưu (đáp án/distractor có thể sai). Bản quyền: KHÔNG chép bộ câu hỏi có sẵn — chỉ dùng nguồn làm input. Reading: passage sẽ hiển thị nguyên văn, chỉ dán nội dung của bạn hoặc public-domain.
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button className={"chip" + (kind === "listening" ? " active" : "")} onClick={() => setKind("listening")}>Listening (YouTube)</button>
-        <button className={"chip" + (kind === "reading" ? " active" : "")} onClick={() => setKind("reading")}>Reading (dán text gốc)</button>
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <button className={"chip" + (skill === "listening" ? " active" : "")} onClick={() => setSkill("listening")}>Listening — 1 video = 40 câu</button>
+        <button className={"chip" + (skill === "reading" ? " active" : "")} onClick={() => setSkill("reading")}>Reading — 1 passage = 1 part</button>
       </div>
 
-      {kind === "listening" ? (
+      {skill === "listening" ? (
         <>
-          <label style={labelStyle}>Link YouTube</label>
+          <label style={labelStyle}>Link YouTube (video listening đầy đủ 4 section)</label>
           <div style={{ display: "flex", gap: 8 }}>
-            <input style={{ ...inputStyle }} value={ytUrl} onChange={(e) => setYtUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." />
+            <input style={inputStyle} value={ytUrl} onChange={(e) => setYtUrl(e.target.value)} placeholder="https://youtu.be/..." />
             <button className="btn sm" style={{ whiteSpace: "nowrap", marginTop: 4 }} onClick={fetchTranscript} disabled={busy !== "" || !ytUrl.trim()}>{busy === "fetch" ? "Đang lấy…" : "Lấy transcript"}</button>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 160 }}><label style={labelStyle}>YouTube ID</label><input style={inputStyle} value={youtubeId} onChange={(e) => setYoutubeId(e.target.value)} placeholder="tự điền sau khi lấy" /></div>
-            <div style={{ flex: 1, minWidth: 160 }}><label style={labelStyle}>Nguồn (ghi công)</label><input style={inputStyle} value={source} onChange={(e) => setSource(e.target.value)} placeholder="vd: Kênh ABC" /></div>
+            <div style={{ flex: 1, minWidth: 150 }}><label style={labelStyle}>YouTube ID</label><input style={inputStyle} value={youtubeId} onChange={(e) => setYoutubeId(e.target.value)} placeholder="tự điền" /></div>
+            <div style={{ flex: 1, minWidth: 150 }}><label style={labelStyle}>Nguồn (ghi công)</label><input style={inputStyle} value={source} onChange={(e) => setSource(e.target.value)} placeholder="vd: Kênh ABC" /></div>
+            <div style={{ flex: 1, minWidth: 150 }}><label style={labelStyle}>Tiêu đề</label><input style={inputStyle} value={lTitle} onChange={(e) => setLTitle(e.target.value)} placeholder="vd: Listening Test 1" /></div>
           </div>
-          <label style={{ ...labelStyle, display: "block", marginTop: 12 }}>Transcript (input để sinh đề — không hiển thị cho người học)</label>
-          <textarea style={{ ...inputStyle, fontFamily: "var(--mono)", fontSize: 12.5 }} rows={6} value={transcript} onChange={(e) => setTranscript(e.target.value)} placeholder="Tự lấy bằng nút trên, hoặc dán tay vào đây…" />
+          <label style={{ ...labelStyle, display: "block", marginTop: 12 }}>Transcript (input — không hiển thị cho người học)</label>
+          <textarea style={{ ...inputStyle, fontFamily: "var(--mono)", fontSize: 12.5 }} rows={6} value={transcript} onChange={(e) => setTranscript(e.target.value)} placeholder="Tự lấy bằng nút trên, hoặc dán tay…" />
         </>
       ) : (
         <>
-          <label style={labelStyle}>Passage (nội dung gốc của bạn — sẽ hiển thị cho người học)</label>
-          <textarea style={{ ...inputStyle }} rows={8} value={passage} onChange={(e) => setPassage(e.target.value)} placeholder="Dán đoạn văn (cách đoạn bằng dòng trống)…" />
+          <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            {[1, 2, 3].map((p) => (
+              <button key={p} className={"chip" + (part === p ? " active" : "")} onClick={() => setPart(p as 1 | 2 | 3)}>Part {p} {p === 1 ? "(dễ, 13 câu)" : p === 2 ? "(vừa, 13 câu)" : "(khó, 14 câu)"}</button>
+            ))}
+          </div>
+          <label style={labelStyle}>Passage (nội dung gốc của bạn — hiển thị cho người học, cách đoạn bằng dòng trống)</label>
+          <textarea style={inputStyle} rows={8} value={passage} onChange={(e) => setPassage(e.target.value)} placeholder="Dán đoạn văn…" />
+          <label style={{ ...labelStyle, display: "block", marginTop: 10 }}>Tiêu đề passage</label>
+          <input style={inputStyle} value={rTitle} onChange={(e) => setRTitle(e.target.value)} placeholder="vd: Passage 2 — Urban beekeeping" />
         </>
       )}
 
-      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
-        <div style={{ flex: 1, minWidth: 160 }}><label style={labelStyle}>Tiêu đề section</label><input style={inputStyle} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="vd: Section 2 — A talk on recycling" /></div>
-        <div style={{ width: 130 }}><label style={labelStyle}>Band mục tiêu</label>
+      <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "flex-end" }}>
+        <div style={{ width: 140 }}><label style={labelStyle}>Band mục tiêu</label>
           <select style={inputStyle} value={band} onChange={(e) => setBand(e.target.value)}><option>5.5–6.5</option><option>6.5–7.5</option><option>7.5–8.5</option></select>
         </div>
-        <div style={{ width: 90 }}><label style={labelStyle}>Số câu</label><input type="number" style={inputStyle} value={count} min={4} max={14} onChange={(e) => setCount(Number(e.target.value))} /></div>
-        <button className="btn" style={{ marginTop: 4 }} onClick={generate} disabled={busy !== "" || (kind === "listening" ? !transcript.trim() : !passage.trim())}>{busy === "gen" ? "Đang sinh…" : "Sinh câu hỏi"}</button>
+        <button className="btn" style={{ marginTop: 4 }} onClick={generate} disabled={busy !== "" || (skill === "listening" ? !transcript.trim() : !passage.trim())}>{busy === "gen" ? "Đang sinh…" : skill === "listening" ? "Sinh 40 câu" : "Sinh câu hỏi"}</button>
       </div>
 
       {err && <div className="vmis" style={{ marginTop: 12 }}>{err}</div>}
 
-      {genJson && (
+      {skill === "listening" && secJson && (
         <>
-          <h4 style={{ ...labelStyle, marginTop: 18, display: "block" }}>Câu hỏi (QA/sửa rồi lưu)</h4>
-          <textarea spellCheck={false} style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid var(--line)", fontFamily: "var(--mono)", fontSize: 12.5, lineHeight: 1.55, background: "#fbf6ee", marginTop: 4 }} rows={16} value={genJson} onChange={(e) => setGenJson(e.target.value)} />
-          <div style={{ marginTop: 12 }}><button className="btn" onClick={save}>Lưu vào Mock</button></div>
+          <h4 style={{ ...labelStyle, marginTop: 18, display: "block" }}>4 sections (QA/sửa rồi lưu)</h4>
+          <textarea spellCheck={false} style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid var(--line)", fontFamily: "var(--mono)", fontSize: 12.5, lineHeight: 1.5, background: "#fbf6ee", marginTop: 4 }} rows={18} value={secJson} onChange={(e) => setSecJson(e.target.value)} />
+          <div style={{ marginTop: 12 }}><button className="btn" onClick={saveListening}>Lưu vào Mock</button></div>
+        </>
+      )}
+      {skill === "reading" && qJson && (
+        <>
+          <h4 style={{ ...labelStyle, marginTop: 18, display: "block" }}>Câu hỏi Part {part} (QA/sửa rồi lưu)</h4>
+          <textarea spellCheck={false} style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid var(--line)", fontFamily: "var(--mono)", fontSize: 12.5, lineHeight: 1.5, background: "#fbf6ee", marginTop: 4 }} rows={16} value={qJson} onChange={(e) => setQJson(e.target.value)} />
+          <div style={{ marginTop: 12 }}><button className="btn" onClick={saveReading}>Lưu vào Mock (Part {part})</button></div>
         </>
       )}
     </div>

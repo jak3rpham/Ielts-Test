@@ -4,23 +4,27 @@
 //          + Writing (Task 1 + Task 2). "Mỗi lần thi một đề khác" do component chọn.
 // Listening dùng transcript gốc + trình duyệt đọc to (Web Speech API) — KHÔNG chép đề thật.
 
+// TFNG: True/False/Not Given · YNG: Yes/No/Not Given · MCQ: 1 đáp án
+// MH (Matching Headings): options = danh sách heading dùng chung, q = "Paragraph N", answer = index
 export interface MockReadingQ {
-  type: "TFNG" | "MCQ";
+  type: "TFNG" | "YNG" | "MCQ" | "MH";
   q: string;
   options?: string[];
-  answer: string | number; // TFNG: "True"|"False"|"Not Given" ; MCQ: index
+  answer: string | number;
 }
 export interface MockReadingPassage {
   title: string;
   passage: string[];
   questions: MockReadingQ[];
+  part?: 1 | 2 | 3; // part trong bài thi (P1 dễ → P3 khó)
 }
 
+// GAP: điền từ/số · MCQ: 1 đáp án · MATCH: options dùng chung, answer = index
 export interface MockListeningQ {
-  type: "GAP" | "MCQ";
+  type: "GAP" | "MCQ" | "MATCH";
   q: string;
   options?: string[];
-  answer: string | number; // GAP: từ/cụm cần điền (không phân biệt hoa/thường) ; MCQ: index
+  answer: string | number;
 }
 export interface MockListeningSection {
   title: string;

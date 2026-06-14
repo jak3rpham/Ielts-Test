@@ -5,6 +5,7 @@
 // nguyên văn trong app; video được EMBED (không tải/host lại audio).
 
 import { NextResponse } from "next/server";
+import { requireUser } from "@/lib/requireAuth";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,8 @@ function extractVideoId(input: string): string | null {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireUser();
+  if (auth instanceof NextResponse) return auth;
   const apiKey = process.env.SUPADATA_API_KEY;
   let body: { url?: string };
   try {
