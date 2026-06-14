@@ -11,7 +11,7 @@ import Timer from "@/components/Timer";
 type Phase = "intro" | "reading" | "listening" | "writing1" | "writing2" | "grading" | "results";
 const TFNG = ["True", "False", "Not Given"];
 const YNG = ["Yes", "No", "Not Given"];
-const selStyle: React.CSSProperties = { padding: "9px 12px", borderRadius: 9, border: "1.5px solid var(--line)", fontSize: 14, fontFamily: "var(--body)", background: "#fbf6ee", minWidth: 220 };
+const selStyle: React.CSSProperties = { padding: "9px 12px", borderRadius: 9, border: "1.5px solid var(--line)", fontSize: 14, fontFamily: "var(--body)", background: "#fbf6ee", width: "100%", maxWidth: 360 };
 const round2 = (n: number) => Math.round(n * 2) / 2;
 
 // % đúng -> band ước tính (xấp xỉ thang IELTS Academic, 40 câu)
@@ -101,6 +101,7 @@ export default function MockTest() {
     testId: string;
   }>(null);
   const [saveMsg, setSaveMsg] = useState("");
+  const [showReview, setShowReview] = useState(false);
 
   // đánh số câu liên tục 1..40 cho từng kỹ năng
   const readingBlocks = useMemo(() => {
@@ -394,8 +395,73 @@ export default function MockTest() {
         {saveMsg && <div className="note" style={{ marginTop: 14 }}>{saveMsg}</div>}
         <div className="note" style={{ marginTop: 10 }}>{T("Đây là ước tính. Reading/Listening chấm theo số câu đúng (40 câu mỗi kỹ năng); Writing = trung bình có trọng số Task 1 (×1) và Task 2 (×2) do AI chấm.",
           "This is an estimate. Reading/Listening are scored by correct answers (40 each); Writing = weighted average of Task 1 (×1) and Task 2 (×2), graded by AI.")}</div>
-        <button className="btn ghost sm" style={{ marginTop: 14 }} onClick={() => window.location.reload()}>{T("Làm đề khác", "Take another test")}</button>
+        <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+          <button className="btn sm" onClick={() => setShowReview((s) => !s)}>{showReview ? T("Ẩn đáp án", "Hide answers") : T("Xem lại đáp án", "Review answers")}</button>
+          <button className="btn ghost sm" onClick={() => window.location.reload()}>{T("Làm đề khác", "Take another test")}</button>
+        </div>
       </div>
+
+      {showReview && (
+        <div>
+          <ReviewBlock T={T} title={T("Reading — đáp án", "Reading — answers")} blocks={readingBlocks.map((b) => ({ title: b.passage.title, items: b.items }))} ans={rAns} kind="reading" />
+          <ReviewBlock T={T} title={T("Listening — đáp án", "Listening — answers")} blocks={listeningBlocks.map((b) => ({ title: b.section.title, items: b.items }))} ans={lAns} kind="listening" />
+          {(r.writing.t1.band != null || r.writing.t2.band != null) && (
+            <div className="card">
+              <span className="eyebrow">{T("Writing — nhận xét", "Writing — feedback")}</span>
+              <div style={{ fontSize: 13.5, marginTop: 8 }}>
+                <div>Task 1: <b>{r.writing.t1.band ?? "—"}</b> {r.writing.t1.weak && <span style={{ color: "var(--ink-soft)" }}>· {r.writing.t1.weak}</span>}{r.writing.t1.note && <span style={{ color: "var(--maroon)" }}> · {r.writing.t1.note}</span>}</div>
+                <div style={{ marginTop: 4 }}>Task 2: <b>{r.writing.t2.band ?? "—"}</b> {r.writing.t2.weak && <span style={{ color: "var(--ink-soft)" }}>· {r.writing.t2.weak}</span>}{r.writing.t2.note && <span style={{ color: "var(--maroon)" }}> · {r.writing.t2.note}</span>}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Review đáp án Reading/Listening ---------- */
+type RvQ = { type: string; q: string; options?: string[]; answer: string | number };
+function ReviewBlock({ T, title, blocks, ans, kind }: {
+  T: (vi: string, en: string) => string;
+  title: string;
+  blocks: { title: string; items: { q: RvQ; gi: number }[] }[];
+  ans: Record<number, string | number>;
+  kind: "reading" | "listening";
+}) {
+  const fmt = (q: RvQ, val: string | number | undefined) => {
+    if (val === undefined || val === "") return "—";
+    if (q.type === "MCQ" || q.type === "MH" || q.type === "MATCH") return q.options?.[Number(val)] ?? String(val);
+    return String(val);
+  };
+  const right = (q: RvQ, val: string | number | undefined) => {
+    if (kind === "listening" && q.type === "GAP") return String(val ?? "").trim().toLowerCase() === String(q.answer).trim().toLowerCase();
+    return val === q.answer;
+  };
+  return (
+    <div className="card">
+      <span className="eyebrow">{title}</span>
+      {blocks.map((b, bi) => (
+        <div key={bi} style={{ marginTop: 12 }}>
+          <div style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--amber-deep)", marginBottom: 6 }}>{b.title}</div>
+          {b.items.map(({ q, gi }) => {
+            const ok = right(q, ans[gi]);
+            return (
+              <div key={gi} style={{ fontSize: 13.5, padding: "7px 0", borderBottom: "1px solid var(--line)" }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <span style={{ color: ok ? "var(--green)" : "var(--maroon)", fontWeight: 700 }}>{ok ? "✓" : "✗"}</span>
+                  <span><b>{gi + 1}.</b> {q.q}</span>
+                </div>
+                {!ok && (
+                  <div style={{ marginLeft: 22, marginTop: 3, color: "var(--ink-soft)" }}>
+                    {T("Bạn chọn", "You")}: <span style={{ color: "var(--maroon)" }}>{fmt(q, ans[gi])}</span> · {T("Đáp án", "Answer")}: <span style={{ color: "var(--green)" }}>{fmt(q, q.answer)}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

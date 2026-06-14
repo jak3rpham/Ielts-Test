@@ -1,0 +1,16 @@
+{
+  "name": "IELTS Studio",
+  "short_name": "IELTS Studio",
+  "description": "Lò luyện IELTS — thi thử full-length, đề AI, leaderboard.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4ece0",
+  "theme_color": "#241c16",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

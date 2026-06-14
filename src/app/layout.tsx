@@ -1,12 +1,23 @@
 // src/app/layout.tsx
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Nav from "@/components/Nav";
+import PWA from "@/components/PWA";
 import { LanguageProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "IELTS Studio — Lò luyện band 7.5+",
   description: "Grammar · Vocabulary · Writing · Reading · Speaking. Một bộ công cụ để học và để dạy.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "IELTS Studio" },
+  icons: { icon: "/favicon-32.png", apple: "/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#241c16",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             IELTS Studio — tự build để học và để dạy.
           </div>
         </LanguageProvider>
+        <PWA />
       </body>
     </html>
   );
